@@ -303,7 +303,7 @@ DEMO MODE. Reports are not saved yet. In an emergency call 112.</div>
           <a href="tel:112">112</a><a href="tel:101">101</a><a href="tel:108">108</a>
         </div>
         <div data-lift id="liftUrgent"></div>
-        <a class="wa" target="_blank" rel="noopener" data-wa style="margin-top:10px"><span data-i="wa_btn"></span></a>
+        <a class="wa" id="urgentWa" target="_blank" rel="noopener" data-wa style="margin-top:10px"><span data-i="wa_btn"></span></a>
       </div>
       <h2 data-i="q_tower"></h2>
       <div class="towers" id="towerGrid"></div>
@@ -1478,6 +1478,8 @@ function updateBar() {
 }
 function go(screen) {
   state.screen = screen;
+  // The red urgent box follows the resident: on the tower step and again on the last step, once the tower is known.
+  if (screen === 'where' || screen === 'send') document.querySelector(`[data-screen="${screen}"]`).prepend($('urgentBox'));
   document.querySelectorAll('[data-screen]').forEach(s => { s.hidden = s.dataset.screen !== screen; });
   $('err').textContent = '';
   updateBar();
@@ -1651,6 +1653,21 @@ function copyFallback(text) {
   try { document.execCommand('copy'); } catch (e) { /* nothing more we can do; the share sheet carries the text anyway */ }
   t.remove();
 }
+// Urgent alert for the group, in plain English: what, where, and that someone may need help right now.
+function alertMessage() {
+  const where = [state.tower, $('spot').value.trim()].filter(Boolean).join(', ') || 'Location not chosen yet';
+  const ask = state.category.startsWith('Lift stuck') ? 'Someone may be stuck inside. Please help now.' : 'Please help now.';
+  return ['\u{1F6A8} URGENT: ' + state.category, where, ask, $('description').value.trim(),
+    'Sent from the ' + CFG.society + ' app'].filter(Boolean).join('\n');
+}
+$('urgentWa').addEventListener('click', e => {
+  const text = alertMessage();
+  copyText(text);
+  if (canShare()) {
+    e.preventDefault(); // share sheet puts the alert straight into WhatsApp's message box
+    navigator.share({ text, title: 'Urgent safety alert' }).catch(() => { /* cancelled */ });
+  } // no share sheet: the link opens the group with the alert copied, ready to paste
+});
 $('waShare').addEventListener('click', e => {
   if (!lastMessage) return;
   copyText(lastMessage); // also on the clipboard in case WhatsApp drops the text
