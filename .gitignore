@@ -2,3 +2,4 @@ preview.html
 *.pdf
 __pycache__/
 .DS_Store
+video/
