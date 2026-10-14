@@ -1,0 +1,29 @@
+Hi all,
+
+Like many of you, I've been worried about lifts getting stuck and alarms not working. I tried to put together something small that might help. It's a first attempt, so please bear with me.
+
+A simple safety app for our building.
+
+An example:
+It's 11 pm and you're stuck in the lift.
+1. Open the app and tap Johnson Lifts. It calls their breakdown line.
+2. Tap Report, then Lift stuck, then your tower.
+3. Tap Send. You get a ticket number, so the problem is on record.
+4. If you like, one more tap shares it in the safety WhatsApp group.
+
+You can also report smoke, a gas smell, loose wires, cracks or a blocked fire exit. Add a photo or voice note if you want. It works in Kannada, Hindi, Tamil, Telugu, Bangla, Odia and more. All the emergency numbers are inside too.
+
+Every report can be shared in our safety WhatsApp group, so we all see what's happening and can follow up together. Please join here:
+https://chat.whatsapp.com/BgTJMNNCUoG1Ey9GQViZXB
+
+I only ask for your phone number so I can call you back.
+
+https://ankurnapa.github.io/rwa-safety/
+
+This is just a few residents trying to help. It's not from the society office.
+
+If something doesn't work or could be better, please tell me. I'd really value your suggestions.
+
+In a real emergency, please call 112 first.
+
+Ankur

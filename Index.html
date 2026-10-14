@@ -205,6 +205,9 @@
   .ct.hero b { color: #fff; font-size: 26px; }
   .linkbtn { color: var(--copper-hi); font-weight: 600; font-size: 13px; text-decoration: underline; text-underline-offset: 3px; }
   .linkbtn.about { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 10px 0 2px; text-decoration: none; }
+  .homelink { font: inherit; letter-spacing: inherit; color: inherit; cursor: pointer; }
+  .homebtn { margin-top: 14px; background: var(--surface); color: var(--copper-hi); border: 1px solid var(--line); }
+  .homebtn:hover { background: var(--surface); border-color: var(--copper); }
   .linkbtn.again { display: block; margin: 16px auto 0; }
   .disc.center { justify-content: center; text-align: center; margin-top: 6px; }
   .phoneup { display: flex; gap: 8px; align-items: flex-start; font-size: 12.5px; color: var(--copper-hi); background: var(--copper-soft);
@@ -234,7 +237,7 @@
     <button class="iconbtn" id="backBtn" type="button" hidden>
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
     </button>
-    <div class="brand"><h1>Resident <em>Safety</em></h1><div class="sub" id="org"></div></div>
+    <div class="brand"><h1><button type="button" class="homelink" id="brandHome">Resident <em>Safety</em></button></h1><div class="sub" id="org"></div></div>
     <label class="uchip">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg>
       <select id="lang" aria-label="Language"></select>
@@ -339,6 +342,9 @@
         <p class="csub" data-i="done2"></p>
         <a class="wa" id="waShare" target="_blank" rel="noopener"><span data-i="wa_share"></span></a>
         <p class="note" data-i="wa_pick"></p>
+        <button class="primary homebtn" type="button" id="homeBtn">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"/></svg>
+          <span data-i="home"></span></button>
         <button class="linkbtn again" type="button" id="againBtn" data-i="again"></button>
       </div>
     </section>
@@ -514,7 +520,7 @@ function updateBar() {
   const i = STEPS.indexOf(state.screen);
   $('steps').hidden = i < 0;
   document.querySelectorAll('#steps span').forEach((s, k) => { s.className = k === i ? 'on' : k < i ? 'done' : ''; });
-  $('backBtn').hidden = i < 0;
+  $('backBtn').hidden = state.screen === 'home'; // the ticket screen gets a way back too
   $('bar').hidden = ['what', 'where', 'done'].includes(state.screen); // tiles and towers move on by themselves
   $('nextBtn').textContent = state.screen === 'home' ? T('start') : failed ? T('retry') : T('agree_send');
 }
@@ -526,6 +532,7 @@ function go(screen) {
   window.scrollTo(0, 0);
 }
 function back() {
+  if (state.screen === 'done') { resetForm(); return go('home'); }
   const i = STEPS.indexOf(state.screen);
   go(i <= 0 ? 'home' : STEPS[i - 1]);
 }
@@ -544,7 +551,7 @@ $('aboutBtn').onclick = () => openSheet('about');
 $('noticeBtn').onclick = () => openSheet('notice');
 $('sheetClose').onclick = () => $('sheet').close();
 $('sheet').addEventListener('click', e => { if (e.target === $('sheet')) $('sheet').close(); }); // tap outside closes
-$('againBtn').onclick = () => {
+function resetForm() {
   state.category = ''; state.tower = '';
   ['description', 'spot', 'when', 'mygateRef'].forEach(id => { $(id).value = ''; }); // phone stays filled in
   document.querySelectorAll('input[name=mygate]').forEach(r => { r.checked = false; });
@@ -552,8 +559,11 @@ $('againBtn').onclick = () => {
   photos = []; $('thumbs').replaceChildren(); $('photos').value = '';
   $('delVoice').onclick();
   renderTiles(); renderPlaces(); onCategory();
-  go('what');
-};
+}
+$('againBtn').onclick = () => { resetForm(); go('what'); };
+$('homeBtn').onclick = () => { resetForm(); go('home'); };
+// Brand goes home from anywhere. Mid-report the typed text stays, so nothing is lost.
+$('brandHome').onclick = () => { if (state.screen === 'done') resetForm(); go('home'); };
 $('backBtn').onclick = back;
 $('lang').replaceChildren(...Object.entries(I18N).map(([code, t]) => new Option(t._name, code)));
 $('lang').value = L;

@@ -1,0 +1,16 @@
+Hi all,
+
+I've made a small safety app for our building. Report a stuck lift, smoke, gas smell or loose wires in 1 minute. All emergency numbers are inside too.
+
+https://ankurnapa.github.io/rwa-safety/
+
+Reports can be shared in our safety group:
+https://chat.whatsapp.com/BgTJMNNCUoG1Ey9GQViZXB
+
+Everything stays among us residents. Reports go only to this group and a private log I keep. Nothing is shared outside.
+
+It's a first attempt by residents, not the society. Suggestions welcome.
+
+In an emergency, call 112 first.
+
+Ankur

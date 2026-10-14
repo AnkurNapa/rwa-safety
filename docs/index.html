@@ -232,6 +232,9 @@ window.google = { script: { run: (() => {
   .ct.hero b { color: #fff; font-size: 26px; }
   .linkbtn { color: var(--copper-hi); font-weight: 600; font-size: 13px; text-decoration: underline; text-underline-offset: 3px; }
   .linkbtn.about { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 10px 0 2px; text-decoration: none; }
+  .homelink { font: inherit; letter-spacing: inherit; color: inherit; cursor: pointer; }
+  .homebtn { margin-top: 14px; background: var(--surface); color: var(--copper-hi); border: 1px solid var(--line); }
+  .homebtn:hover { background: var(--surface); border-color: var(--copper); }
   .linkbtn.again { display: block; margin: 16px auto 0; }
   .disc.center { justify-content: center; text-align: center; margin-top: 6px; }
   .phoneup { display: flex; gap: 8px; align-items: flex-start; font-size: 12.5px; color: var(--copper-hi); background: var(--copper-soft);
@@ -263,7 +266,7 @@ DEMO MODE. Reports are not saved yet. In an emergency call 112.</div>
     <button class="iconbtn" id="backBtn" type="button" hidden>
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
     </button>
-    <div class="brand"><h1>Resident <em>Safety</em></h1><div class="sub" id="org"></div></div>
+    <div class="brand"><h1><button type="button" class="homelink" id="brandHome">Resident <em>Safety</em></button></h1><div class="sub" id="org"></div></div>
     <label class="uchip">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg>
       <select id="lang" aria-label="Language"></select>
@@ -368,6 +371,9 @@ DEMO MODE. Reports are not saved yet. In an emergency call 112.</div>
         <p class="csub" data-i="done2"></p>
         <a class="wa" id="waShare" target="_blank" rel="noopener"><span data-i="wa_share"></span></a>
         <p class="note" data-i="wa_pick"></p>
+        <button class="primary homebtn" type="button" id="homeBtn">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"/></svg>
+          <span data-i="home"></span></button>
         <button class="linkbtn again" type="button" id="againBtn" data-i="again"></button>
       </div>
     </section>
@@ -433,6 +439,7 @@ en: {
   phone_note: "We take your phone number so the coordinator can call you back. Only the coordinator sees it.",
   q_phone: "Your phone number",
   e_phone: "Please enter a 10-digit phone number.",
+  home: "Back to home",
   urgent_t: "This sounds urgent. Get help first.",
   urgent_b: "Call now or alert the safety group. Then send a short report. The other questions can wait.",
   more: "More details (optional)",
@@ -510,6 +517,7 @@ hi: {
   phone_note: "हम आपका फ़ोन नंबर लेते हैं ताकि समन्वयक आपको वापस कॉल कर सके। इसे केवल समन्वयक देखता है।",
   q_phone: "आपका फ़ोन नंबर",
   e_phone: "कृपया 10 अंकों का फ़ोन नंबर डालें।",
+  home: "होम पर वापस जाएँ",
   urgent_t: "यह ज़रूरी लगता है। पहले मदद लें।",
   urgent_b: "अभी कॉल करें या सुरक्षा ग्रुप को सूचित करें। फिर छोटी शिकायत भेजें। बाकी सवाल बाद में।",
   more: "और जानकारी (वैकल्पिक)",
@@ -589,6 +597,7 @@ kn: {
   phone_note: "ಸಂಯೋಜಕರು ನಿಮಗೆ ಮರಳಿ ಕರೆ ಮಾಡಲು ನಾವು ನಿಮ್ಮ ಫೋನ್ ಸಂಖ್ಯೆಯನ್ನು ಪಡೆಯುತ್ತೇವೆ. ಅದನ್ನು ಸಂಯೋಜಕರು ಮಾತ್ರ ನೋಡುತ್ತಾರೆ.",
   q_phone: "ನಿಮ್ಮ ಫೋನ್ ಸಂಖ್ಯೆ",
   e_phone: "ದಯವಿಟ್ಟು 10 ಅಂಕಿಯ ಫೋನ್ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ.",
+  home: "ಮುಖಪುಟಕ್ಕೆ ಹಿಂತಿರುಗಿ",
   urgent_t: "ಇದು ತುರ್ತು ಎಂದು ತೋರುತ್ತದೆ. ಮೊದಲು ಸಹಾಯ ಪಡೆಯಿರಿ.",
   urgent_b: "ಈಗಲೇ ಕರೆ ಮಾಡಿ ಅಥವಾ ಸುರಕ್ಷತಾ ಗುಂಪಿಗೆ ತಿಳಿಸಿ. ನಂತರ ಚಿಕ್ಕ ವರದಿ ಕಳುಹಿಸಿ. ಉಳಿದ ಪ್ರಶ್ನೆಗಳು ಕಾಯಬಹುದು.",
   more: "ಹೆಚ್ಚಿನ ವಿವರಗಳು (ಐಚ್ಛಿಕ)",
@@ -668,6 +677,7 @@ bn: {
   phone_note: "সমন্বয়কারী যাতে আপনাকে ফোন করতে পারেন, তাই আমরা আপনার ফোন নম্বর নিই। শুধু সমন্বয়কারী তা দেখেন।",
   q_phone: "আপনার ফোন নম্বর",
   e_phone: "দয়া করে 10 সংখ্যার ফোন নম্বর দিন।",
+  home: "হোমে ফিরে যান",
   urgent_t: "এটি জরুরি মনে হচ্ছে। আগে সাহায্য নিন।",
   urgent_b: "এখনই ফোন করুন বা নিরাপত্তা গ্রুপকে জানান। তারপর একটি ছোট অভিযোগ পাঠান। বাকি প্রশ্ন পরে।",
   more: "আরও বিবরণ (ঐচ্ছিক)",
@@ -747,6 +757,7 @@ or: {
   phone_note: "ସମନ୍ୱୟକାରୀ ଆପଣଙ୍କୁ ଫୋନ କରିପାରିବେ ବୋଲି ଆମେ ଆପଣଙ୍କ ଫୋନ ନମ୍ବର ନେଉ। କେବଳ ସମନ୍ୱୟକାରୀ ତାହା ଦେଖନ୍ତି।",
   q_phone: "ଆପଣଙ୍କ ଫୋନ ନମ୍ବର",
   e_phone: "ଦୟାକରି 10 ଅଙ୍କର ଫୋନ ନମ୍ବର ଦିଅନ୍ତୁ।",
+  home: "ହୋମକୁ ଫେରନ୍ତୁ",
   urgent_t: "ଏହା ଜରୁରୀ ଲାଗୁଛି। ପ୍ରଥମେ ସାହାଯ୍ୟ ନିଅନ୍ତୁ।",
   urgent_b: "ବର୍ତ୍ତମାନ ଫୋନ କରନ୍ତୁ କିମ୍ବା ସୁରକ୍ଷା ଗ୍ରୁପକୁ ଜଣାନ୍ତୁ। ତା'ପରେ ଛୋଟ ଅଭିଯୋଗ ପଠାନ୍ତୁ। ବାକି ପ୍ରଶ୍ନ ପରେ।",
   more: "ଅଧିକ ବିବରଣୀ (ଇଚ୍ଛାଧୀନ)",
@@ -826,6 +837,7 @@ pa: {
   phone_note: "ਅਸੀਂ ਤੁਹਾਡਾ ਫ਼ੋਨ ਨੰਬਰ ਲੈਂਦੇ ਹਾਂ ਤਾਂ ਜੋ ਕੋਆਰਡੀਨੇਟਰ ਤੁਹਾਨੂੰ ਵਾਪਸ ਫ਼ੋਨ ਕਰ ਸਕੇ। ਇਸਨੂੰ ਸਿਰਫ਼ ਕੋਆਰਡੀਨੇਟਰ ਦੇਖਦਾ ਹੈ।",
   q_phone: "ਤੁਹਾਡਾ ਫ਼ੋਨ ਨੰਬਰ",
   e_phone: "ਕਿਰਪਾ ਕਰਕੇ 10 ਅੰਕਾਂ ਦਾ ਫ਼ੋਨ ਨੰਬਰ ਪਾਓ।",
+  home: "ਹੋਮ 'ਤੇ ਵਾਪਸ ਜਾਓ",
   urgent_t: "ਇਹ ਜ਼ਰੂਰੀ ਲੱਗਦਾ ਹੈ। ਪਹਿਲਾਂ ਮਦਦ ਲਓ।",
   urgent_b: "ਹੁਣੇ ਫ਼ੋਨ ਕਰੋ ਜਾਂ ਸੁਰੱਖਿਆ ਗਰੁੱਪ ਨੂੰ ਦੱਸੋ। ਫਿਰ ਛੋਟੀ ਸ਼ਿਕਾਇਤ ਭੇਜੋ। ਬਾਕੀ ਸਵਾਲ ਬਾਅਦ ਵਿੱਚ।",
   more: "ਹੋਰ ਵੇਰਵੇ (ਵਿਕਲਪਿਕ)",
@@ -905,6 +917,7 @@ ta: {
   phone_note: "ஒருங்கிணைப்பாளர் உங்களைத் திரும்ப அழைக்க உங்கள் தொலைபேசி எண்ணைப் பெறுகிறோம். அதை ஒருங்கிணைப்பாளர் மட்டுமே பார்ப்பார்.",
   q_phone: "உங்கள் தொலைபேசி எண்",
   e_phone: "தயவுசெய்து 10 இலக்க தொலைபேசி எண்ணை உள்ளிடவும்.",
+  home: "முகப்புக்குத் திரும்பு",
   urgent_t: "இது அவசரமாகத் தெரிகிறது. முதலில் உதவி பெறுங்கள்.",
   urgent_b: "இப்போதே அழைக்கவும் அல்லது பாதுகாப்புக் குழுவுக்குத் தெரிவிக்கவும். பிறகு ஒரு சிறிய புகாரை அனுப்பவும். மற்ற கேள்விகள் காத்திருக்கலாம்.",
   more: "மேலும் விவரங்கள் (விருப்பத்தேர்வு)",
@@ -984,6 +997,7 @@ te: {
   phone_note: "సమన్వయకర్త మీకు తిరిగి కాల్ చేయడానికి మేము మీ ఫోన్ నంబర్ తీసుకుంటాము. దాన్ని సమన్వయకర్త మాత్రమే చూస్తారు.",
   q_phone: "మీ ఫోన్ నంబర్",
   e_phone: "దయచేసి 10 అంకెల ఫోన్ నంబర్ ఇవ్వండి.",
+  home: "హోమ్‌కు తిరిగి వెళ్ళండి",
   urgent_t: "ఇది అత్యవసరంగా అనిపిస్తోంది. ముందు సహాయం పొందండి.",
   urgent_b: "ఇప్పుడే కాల్ చేయండి లేదా భద్రతా గ్రూప్‌కు తెలియజేయండి. తర్వాత చిన్న ఫిర్యాదు పంపండి. మిగతా ప్రశ్నలు తర్వాత.",
   more: "మరిన్ని వివరాలు (ఐచ్ఛికం)",
@@ -1063,6 +1077,7 @@ ml: {
   phone_note: "കോർഡിനേറ്റർക്ക് നിങ്ങളെ തിരികെ വിളിക്കാൻ ഞങ്ങൾ നിങ്ങളുടെ ഫോൺ നമ്പർ എടുക്കുന്നു. കോർഡിനേറ്റർ മാത്രം അത് കാണും.",
   q_phone: "നിങ്ങളുടെ ഫോൺ നമ്പർ",
   e_phone: "ദയവായി 10 അക്ക ഫോൺ നമ്പർ നൽകുക.",
+  home: "ഹോമിലേക്ക് മടങ്ങുക",
   urgent_t: "ഇത് അടിയന്തരമാണെന്ന് തോന്നുന്നു. ആദ്യം സഹായം തേടുക.",
   urgent_b: "ഇപ്പോൾ വിളിക്കുക അല്ലെങ്കിൽ സുരക്ഷാ ഗ്രൂപ്പിനെ അറിയിക്കുക. പിന്നെ ഒരു ചെറിയ പരാതി അയയ്ക്കുക. മറ്റ് ചോദ്യങ്ങൾ പിന്നീട്.",
   more: "കൂടുതൽ വിവരങ്ങൾ (ഓപ്ഷണൽ)",
@@ -1142,6 +1157,7 @@ mr: {
   phone_note: "समन्वयक तुम्हाला परत फोन करू शकेल म्हणून आम्ही तुमचा फोन नंबर घेतो. तो फक्त समन्वयक पाहतो.",
   q_phone: "तुमचा फोन नंबर",
   e_phone: "कृपया 10 अंकी फोन नंबर टाका.",
+  home: "होमवर परत जा",
   urgent_t: "हे तातडीचे वाटते. आधी मदत मिळवा.",
   urgent_b: "आत्ताच फोन करा किंवा सुरक्षा ग्रुपला कळवा. मग छोटी तक्रार पाठवा. बाकीचे प्रश्न नंतर.",
   more: "अधिक तपशील (ऐच्छिक)",
@@ -1221,6 +1237,7 @@ gu: {
   phone_note: "સંયોજક તમને પાછો ફોન કરી શકે તે માટે અમે તમારો ફોન નંબર લઈએ છીએ. તે ફક્ત સંયોજક જ જુએ છે.",
   q_phone: "તમારો ફોન નંબર",
   e_phone: "કૃપા કરીને 10 અંકનો ફોન નંબર લખો.",
+  home: "હોમ પર પાછા જાઓ",
   urgent_t: "આ તાત્કાલિક લાગે છે. પહેલાં મદદ મેળવો.",
   urgent_b: "અત્યારે ફોન કરો અથવા સુરક્ષા ગ્રુપને જાણ કરો. પછી ટૂંકી ફરિયાદ મોકલો. બાકીના પ્રશ્નો પછી.",
   more: "વધુ વિગતો (વૈકલ્પિક)",
@@ -1420,7 +1437,7 @@ function updateBar() {
   const i = STEPS.indexOf(state.screen);
   $('steps').hidden = i < 0;
   document.querySelectorAll('#steps span').forEach((s, k) => { s.className = k === i ? 'on' : k < i ? 'done' : ''; });
-  $('backBtn').hidden = i < 0;
+  $('backBtn').hidden = state.screen === 'home'; // the ticket screen gets a way back too
   $('bar').hidden = ['what', 'where', 'done'].includes(state.screen); // tiles and towers move on by themselves
   $('nextBtn').textContent = state.screen === 'home' ? T('start') : failed ? T('retry') : T('agree_send');
 }
@@ -1432,6 +1449,7 @@ function go(screen) {
   window.scrollTo(0, 0);
 }
 function back() {
+  if (state.screen === 'done') { resetForm(); return go('home'); }
   const i = STEPS.indexOf(state.screen);
   go(i <= 0 ? 'home' : STEPS[i - 1]);
 }
@@ -1450,7 +1468,7 @@ $('aboutBtn').onclick = () => openSheet('about');
 $('noticeBtn').onclick = () => openSheet('notice');
 $('sheetClose').onclick = () => $('sheet').close();
 $('sheet').addEventListener('click', e => { if (e.target === $('sheet')) $('sheet').close(); }); // tap outside closes
-$('againBtn').onclick = () => {
+function resetForm() {
   state.category = ''; state.tower = '';
   ['description', 'spot', 'when', 'mygateRef'].forEach(id => { $(id).value = ''; }); // phone stays filled in
   document.querySelectorAll('input[name=mygate]').forEach(r => { r.checked = false; });
@@ -1458,8 +1476,11 @@ $('againBtn').onclick = () => {
   photos = []; $('thumbs').replaceChildren(); $('photos').value = '';
   $('delVoice').onclick();
   renderTiles(); renderPlaces(); onCategory();
-  go('what');
-};
+}
+$('againBtn').onclick = () => { resetForm(); go('what'); };
+$('homeBtn').onclick = () => { resetForm(); go('home'); };
+// Brand goes home from anywhere. Mid-report the typed text stays, so nothing is lost.
+$('brandHome').onclick = () => { if (state.screen === 'done') resetForm(); go('home'); };
 $('backBtn').onclick = back;
 $('lang').replaceChildren(...Object.entries(I18N).map(([code, t]) => new Option(t._name, code)));
 $('lang').value = L;
