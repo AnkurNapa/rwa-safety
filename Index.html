@@ -214,6 +214,10 @@
   .phoneup { display: flex; gap: 8px; align-items: flex-start; font-size: 12.5px; color: var(--copper-hi); background: var(--copper-soft);
     border-radius: var(--r); padding: 10px 12px; margin-top: 4px; }
   .phoneup svg { flex: none; margin-top: 2px; }
+  .howto { margin-top: 16px; padding: 12px 14px; border-radius: var(--r); background: rgba(89,161,79,.08); border: 1px solid rgba(89,161,79,.3); text-align: left; }
+  .howto-t { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13.5px; color: #3f7a37; }
+  .howto ol { margin: 8px 0 0 22px; font-size: 13.5px; color: var(--ink); }
+  .howto li { padding: 2px 0; }
   .noticeline { font-size: 12.5px; color: var(--ink-dim); margin-top: 14px; }
   dialog.sheet { margin: auto auto 0; width: 100%; max-width: 520px; max-height: 86vh; overflow-y: auto; border: 0;
     border-radius: 18px 18px 0 0; padding: 10px 18px calc(22px + env(safe-area-inset-bottom)); background: var(--bg);
@@ -275,6 +279,7 @@
         </div>
         <div data-lift id="liftUrgent"></div>
         <a class="wa" id="urgentWa" target="_blank" rel="noopener" data-wa style="margin-top:10px"><span data-i="wa_btn"></span></a>
+        <p class="note" data-i="step2"></p>
       </div>
       <h2 data-i="q_tower"></h2>
       <div class="towers" id="towerGrid"></div>
@@ -301,6 +306,10 @@
         <label class="q" for="contact" data-i="q_phone"></label>
         <input type="tel" id="contact" maxlength="20" inputmode="tel" autocomplete="tel" placeholder="98XXX XXXXX">
         <p class="mhint" data-i="phone_note"></p>
+      </div>
+      <div class="howto">
+        <div class="howto-t"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z"/></svg><span data-i="steps_t"></span></div>
+        <ol><li data-i="step1"></li><li data-i="step2"></li><li data-i="step3"></li></ol>
       </div>
       <details class="card" id="more">
         <summary data-i="more"></summary>
@@ -342,8 +351,10 @@
         <div class="ticket" id="ticket"></div>
         <p class="csub" data-i="done2"></p>
         <a class="wa" id="waShare" target="_blank" rel="noopener"><span data-i="wa_share"></span></a>
-        <p class="note copied" id="copiedNote" data-i="copied" hidden></p>
-        <p class="note" id="waPickNote" data-i="wa_pick"></p>
+        <div class="howto" id="copiedNote" hidden>
+          <div class="howto-t"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z"/></svg><span data-i="copied"></span></div>
+          <ol><li data-i="step1"></li><li data-i="step2"></li><li data-i="step3"></li></ol>
+        </div>
         <button class="primary homebtn" type="button" id="homeBtn">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"/></svg>
           <span data-i="home"></span></button>
