@@ -205,6 +205,7 @@
   .ct.hero b { color: #fff; font-size: 26px; }
   .linkbtn { color: var(--copper-hi); font-weight: 600; font-size: 13px; text-decoration: underline; text-underline-offset: 3px; }
   .linkbtn.about { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 10px 0 2px; text-decoration: none; }
+  .note.copied { color: #3f7a37; font-weight: 600; }
   .homelink { font: inherit; letter-spacing: inherit; color: inherit; cursor: pointer; }
   .homebtn { margin-top: 14px; background: var(--surface); color: var(--copper-hi); border: 1px solid var(--line); }
   .homebtn:hover { background: var(--surface); border-color: var(--copper); }
@@ -341,7 +342,8 @@
         <div class="ticket" id="ticket"></div>
         <p class="csub" data-i="done2"></p>
         <a class="wa" id="waShare" target="_blank" rel="noopener"><span data-i="wa_share"></span></a>
-        <p class="note" data-i="wa_pick"></p>
+        <p class="note copied" id="copiedNote" data-i="copied" hidden></p>
+        <p class="note" id="waPickNote" data-i="wa_pick"></p>
         <button class="primary homebtn" type="button" id="homeBtn">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"/></svg>
           <span data-i="home"></span></button>
@@ -399,7 +401,7 @@ const el = (tag, props = {}, kids = []) => { const n = Object.assign(document.cr
 
 // The last tower is remembered and highlighted, but the resident still taps it: nothing is sent silently.
 const state = { screen: 'home', category: '', tower: '' };
-let photos = [], voice = null, voiceType = '', recorder = null, recTimer = null;
+let photos = [], voice = null, voiceType = '', voiceBlob = null, recorder = null, recTimer = null;
 
 // Per-phone conveniences only. Storage can be blocked (private mode), so every call is guarded.
 const local = {
@@ -556,7 +558,7 @@ function resetForm() {
   ['description', 'spot', 'when', 'mygateRef'].forEach(id => { $(id).value = ''; }); // phone stays filled in
   document.querySelectorAll('input[name=mygate]').forEach(r => { r.checked = false; });
   $('mygateMore').hidden = true;
-  photos = []; $('thumbs').replaceChildren(); $('photos').value = '';
+  photos = []; shareFiles = []; $('thumbs').replaceChildren(); $('photos').value = '';
   $('delVoice').onclick();
   renderTiles(); renderPlaces(); onCategory();
 }
@@ -634,6 +636,7 @@ $('recBtn').addEventListener('click', async () => {
     stream.getTracks().forEach(t => t.stop());
     clearInterval(recTimer);
     const blob = new Blob(chunks, { type: recorder.mimeType });
+    voiceBlob = blob;
     voiceType = recorder.mimeType.split(';')[0];
     voice = await blobToBase64(blob);
     recorder = null;
@@ -654,12 +657,44 @@ $('recBtn').addEventListener('click', async () => {
   }, 250);
 });
 $('delVoice').onclick = () => {
-  voice = null; voiceType = '';
+  voice = null; voiceType = ''; voiceBlob = null;
   $('voiceBar').hidden = true; $('player').removeAttribute('src');
 };
 
 /* ---------- next / send ---------- */
 let failed = false;
+let lastMessage = '';
+let shareFiles = []; // photos and the voice note, ready for the phone's share sheet
+const b64ToFile = (b64, name, type) => {
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new File([bytes], name, { type });
+};
+const canShareFiles = files => files.length > 0 && !!navigator.share && !!navigator.canShare && navigator.canShare({ files });
+const hasGroup = () => /^https:\/\/chat\.whatsapp\.com\//.test(CFG.safetyGroup);
+// Copy inside the tap itself. execCommand works in the Apps Script iframe where the async clipboard API can be blocked.
+function copyText(text) {
+  const t = el('textarea', { value: text, readOnly: true });
+  t.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+  document.body.appendChild(t);
+  t.select();
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+  t.remove();
+  if (!ok && navigator.clipboard) navigator.clipboard.writeText(text).catch(() => { /* paste will be empty; text is still in the sheet */ });
+  return true;
+}
+$('waShare').addEventListener('click', e => {
+  if (!lastMessage) return;
+  copyText(lastMessage); // the text rides along on the clipboard in case WhatsApp drops it
+  $('copiedNote').hidden = false;
+  if (canShareFiles(shareFiles)) {
+    // Photos and voice note: the share sheet is the only way to hand files to WhatsApp. Resident picks the group.
+    e.preventDefault();
+    navigator.share({ files: shareFiles, text: lastMessage, title: 'Safety alert' }).catch(() => { /* cancelled: button still works */ });
+  }
+});
 // Same rule as normPhone_ in Code.gs: Indian mobile, +91 / 91 / 0 in front allowed.
 const normPhone = v => { const d = String(v || '').replace(/[\s()-]/g, '').replace(/^(\+?91|0)(?=\d{10}$)/, ''); return /^[6-9]\d{9}$/.test(d) ? d : ''; };
 function keepDraft() {
@@ -678,9 +713,9 @@ function collect() {
 }
 // Plain English for the group, whatever language the form was in. No contact details.
 function groupMessage(ticket, f) {
-  return ['SAFETY ALERT ' + ticket, f.category, [f.tower, f.spot.trim()].filter(Boolean).join(', '),
-    f.description.trim() || (f.voice ? '(voice note with the ticket)' : '(photo with the ticket)'),
-    'Sent from the ' + CFG.society + ' app (not an official society app)'].join('\n');
+  return [('SAFETY ALERT ' + ticket).trim(), f.category, [f.tower, f.spot.trim()].filter(Boolean).join(', '),
+    f.description.trim() || (f.voice ? '(voice note with the ticket)' : f.photos.length ? '(photo with the ticket)' : ''),
+    'Sent from the ' + CFG.society + ' app (not an official society app)'].filter(Boolean).join('\n');
 }
 function submit() {
   const form = collect();
@@ -690,6 +725,8 @@ function submit() {
   const needsDetail = form.category === 'Other safety risk' && !voice && !photos.length && form.description.trim().length < 3;
   if (needsDetail) return void ($('err').textContent = T('e_desc'));
   buzz();
+  // Copy now, while the tap still counts as a user action; after saving, the group opens by itself.
+  if (hasGroup()) copyText(groupMessage('', form));
   $('nextBtn').disabled = true;
   $('nextBtn').textContent = T('sending');
   google.script.run
@@ -698,7 +735,19 @@ function submit() {
       draft.clear();
       $('nextBtn').disabled = false; // ready for 'Report another'
       $('ticket').textContent = res.ticket;
-      $('waShare').href = 'https://wa.me/?text=' + encodeURIComponent(groupMessage(res.ticket, form));
+      lastMessage = groupMessage(res.ticket, form);
+      const ext = { 'audio/webm': 'webm', 'audio/mp4': 'm4a', 'audio/ogg': 'ogg' }[voiceType] || 'webm';
+      shareFiles = photos.map((b64, i) => b64ToFile(b64, res.ticket + '-' + (i + 1) + '.jpg', 'image/jpeg'))
+        .concat(voiceBlob ? [new File([voiceBlob], res.ticket + '-voice.' + ext, { type: voiceType || 'audio/webm' })] : []);
+      const withMedia = canShareFiles(shareFiles);
+      $('waPickNote').dataset.i = withMedia ? 'wa_pick_media' : 'wa_pick';
+      $('waPickNote').textContent = T($('waPickNote').dataset.i);
+      // WhatsApp has no link that drops text into a given group. So: copy the report, open the group, the resident pastes.
+      $('waShare').href = hasGroup() ? CFG.safetyGroup : 'https://wa.me/?text=' + encodeURIComponent(lastMessage);
+      $('copiedNote').hidden = !hasGroup();
+      // Open the group straight away. Only as the top page: inside the Apps Script frame WhatsApp refuses to load.
+      // No photos: open the group straight away. With photos the resident taps the button, so the files go too.
+      if (!withMedia && hasGroup() && window.top === window) setTimeout(() => { window.location.href = CFG.safetyGroup; }, 1500);
       go('done');
     })
     .withFailureHandler(x => {

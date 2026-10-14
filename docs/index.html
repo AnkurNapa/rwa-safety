@@ -232,6 +232,7 @@ window.google = { script: { run: (() => {
   .ct.hero b { color: #fff; font-size: 26px; }
   .linkbtn { color: var(--copper-hi); font-weight: 600; font-size: 13px; text-decoration: underline; text-underline-offset: 3px; }
   .linkbtn.about { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 10px 0 2px; text-decoration: none; }
+  .note.copied { color: #3f7a37; font-weight: 600; }
   .homelink { font: inherit; letter-spacing: inherit; color: inherit; cursor: pointer; }
   .homebtn { margin-top: 14px; background: var(--surface); color: var(--copper-hi); border: 1px solid var(--line); }
   .homebtn:hover { background: var(--surface); border-color: var(--copper); }
@@ -370,7 +371,8 @@ DEMO MODE. Reports are not saved yet. In an emergency call 112.</div>
         <div class="ticket" id="ticket"></div>
         <p class="csub" data-i="done2"></p>
         <a class="wa" id="waShare" target="_blank" rel="noopener"><span data-i="wa_share"></span></a>
-        <p class="note" data-i="wa_pick"></p>
+        <p class="note copied" id="copiedNote" data-i="copied" hidden></p>
+        <p class="note" id="waPickNote" data-i="wa_pick"></p>
         <button class="primary homebtn" type="button" id="homeBtn">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"/></svg>
           <span data-i="home"></span></button>
@@ -416,7 +418,7 @@ en: {
   next: "Next",
   back: "Back",
   wa_share: "Send this report to the safety group",
-  wa_pick: "WhatsApp will open with the report typed in. Choose the safety group and press send. Your name and number will be visible there.",
+  wa_pick: "This opens our safety WhatsApp group. Your report is already copied, so just paste it and press send. Your name and number will be visible there.",
   n_wa: "If you share your report in the safety WhatsApp group yourself, everyone in that group sees it with your name and number. That sharing is your choice.",
   lift_call: "Lift stuck? Call Johnson Lifts",
   lift_hint: "Breakdown helpline, Johnson Care. Tell them the job number on the plate inside the lift.",
@@ -440,6 +442,8 @@ en: {
   q_phone: "Your phone number",
   e_phone: "Please enter a 10-digit phone number.",
   home: "Back to home",
+  copied: "Report copied. Paste it in the group.",
+  wa_pick_media: "Choose WhatsApp, then pick our safety group. Your photos and the details go together. The text is also copied in case it is missing.",
   urgent_t: "This sounds urgent. Get help first.",
   urgent_b: "Call now or alert the safety group. Then send a short report. The other questions can wait.",
   more: "More details (optional)",
@@ -494,7 +498,7 @@ hi: {
   next: "आगे",
   back: "पीछे",
   wa_share: "यह शिकायत सुरक्षा ग्रुप में भेजें",
-  wa_pick: "WhatsApp में शिकायत लिखी हुई खुलेगी। सुरक्षा ग्रुप चुनें और भेजें दबाएँ। वहाँ आपका नाम और नंबर दिखेगा।",
+  wa_pick: "इससे हमारा सुरक्षा WhatsApp ग्रुप खुलेगा। आपकी शिकायत पहले से कॉपी है, बस पेस्ट करें और भेजें दबाएँ। वहाँ आपका नाम और नंबर दिखेगा।",
   n_wa: "अगर आप खुद अपनी शिकायत सुरक्षा WhatsApp ग्रुप में साझा करते हैं, तो ग्रुप के सभी लोग उसे आपके नाम और नंबर के साथ देखेंगे। साझा करना आपकी मर्ज़ी है।",
   lift_call: "लिफ़्ट फँसी है? Johnson Lifts को कॉल करें",
   lift_hint: "ब्रेकडाउन हेल्पलाइन, Johnson Care। लिफ़्ट के अंदर लगी प्लेट पर लिखा जॉब नंबर बताएँ।",
@@ -518,6 +522,8 @@ hi: {
   q_phone: "आपका फ़ोन नंबर",
   e_phone: "कृपया 10 अंकों का फ़ोन नंबर डालें।",
   home: "होम पर वापस जाएँ",
+  copied: "शिकायत कॉपी हो गई। ग्रुप में पेस्ट करें।",
+  wa_pick_media: "WhatsApp चुनें, फिर हमारा सुरक्षा ग्रुप चुनें। आपकी फ़ोटो और जानकारी साथ जाएँगी। टेक्स्ट कॉपी भी है, अगर न दिखे तो पेस्ट करें।",
   urgent_t: "यह ज़रूरी लगता है। पहले मदद लें।",
   urgent_b: "अभी कॉल करें या सुरक्षा ग्रुप को सूचित करें। फिर छोटी शिकायत भेजें। बाकी सवाल बाद में।",
   more: "और जानकारी (वैकल्पिक)",
@@ -574,7 +580,7 @@ kn: {
   next: "ಮುಂದೆ",
   back: "ಹಿಂದೆ",
   wa_share: "ಈ ವರದಿಯನ್ನು ಸುರಕ್ಷತಾ ಗುಂಪಿಗೆ ಕಳುಹಿಸಿ",
-  wa_pick: "ವರದಿ ಟೈಪ್ ಆಗಿರುವಂತೆ WhatsApp ತೆರೆಯುತ್ತದೆ. ಸುರಕ್ಷತಾ ಗುಂಪನ್ನು ಆಯ್ಕೆಮಾಡಿ ಕಳುಹಿಸಿ ಒತ್ತಿ. ಅಲ್ಲಿ ನಿಮ್ಮ ಹೆಸರು ಮತ್ತು ಸಂಖ್ಯೆ ಕಾಣುತ್ತದೆ.",
+  wa_pick: "ಇದು ನಮ್ಮ ಸುರಕ್ಷತಾ WhatsApp ಗುಂಪನ್ನು ತೆರೆಯುತ್ತದೆ. ನಿಮ್ಮ ವರದಿ ಈಗಾಗಲೇ ಕಾಪಿ ಆಗಿದೆ, ಪೇಸ್ಟ್ ಮಾಡಿ ಕಳುಹಿಸಿ ಒತ್ತಿ. ಅಲ್ಲಿ ನಿಮ್ಮ ಹೆಸರು ಮತ್ತು ಸಂಖ್ಯೆ ಕಾಣುತ್ತದೆ.",
   n_wa: "ನೀವೇ ನಿಮ್ಮ ವರದಿಯನ್ನು ಸುರಕ್ಷತಾ WhatsApp ಗುಂಪಿನಲ್ಲಿ ಹಂಚಿಕೊಂಡರೆ, ಗುಂಪಿನ ಎಲ್ಲರೂ ಅದನ್ನು ನಿಮ್ಮ ಹೆಸರು ಮತ್ತು ಸಂಖ್ಯೆಯೊಂದಿಗೆ ನೋಡುತ್ತಾರೆ. ಹಂಚಿಕೊಳ್ಳುವುದು ನಿಮ್ಮ ಆಯ್ಕೆ.",
   lift_call: "ಲಿಫ್ಟ್ ಸಿಲುಕಿದೆಯೇ? Johnson Lifts ಗೆ ಕರೆ ಮಾಡಿ",
   lift_hint: "ಬ್ರೇಕ್‌ಡೌನ್ ಸಹಾಯವಾಣಿ, Johnson Care. ಲಿಫ್ಟ್ ಒಳಗಿನ ಫಲಕದಲ್ಲಿರುವ ಜಾಬ್ ಸಂಖ್ಯೆಯನ್ನು ತಿಳಿಸಿ.",
@@ -598,6 +604,8 @@ kn: {
   q_phone: "ನಿಮ್ಮ ಫೋನ್ ಸಂಖ್ಯೆ",
   e_phone: "ದಯವಿಟ್ಟು 10 ಅಂಕಿಯ ಫೋನ್ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ.",
   home: "ಮುಖಪುಟಕ್ಕೆ ಹಿಂತಿರುಗಿ",
+  copied: "ವರದಿ ಕಾಪಿ ಆಗಿದೆ. ಗುಂಪಿನಲ್ಲಿ ಪೇಸ್ಟ್ ಮಾಡಿ.",
+  wa_pick_media: "WhatsApp ಆಯ್ಕೆಮಾಡಿ, ನಂತರ ನಮ್ಮ ಸುರಕ್ಷತಾ ಗುಂಪನ್ನು ಆಯ್ಕೆಮಾಡಿ. ನಿಮ್ಮ ಫೋಟೋಗಳು ಮತ್ತು ವಿವರಗಳು ಒಟ್ಟಿಗೆ ಹೋಗುತ್ತವೆ. ಪಠ್ಯ ಕಾಣದಿದ್ದರೆ ಪೇಸ್ಟ್ ಮಾಡಿ, ಅದು ಕಾಪಿ ಆಗಿದೆ.",
   urgent_t: "ಇದು ತುರ್ತು ಎಂದು ತೋರುತ್ತದೆ. ಮೊದಲು ಸಹಾಯ ಪಡೆಯಿರಿ.",
   urgent_b: "ಈಗಲೇ ಕರೆ ಮಾಡಿ ಅಥವಾ ಸುರಕ್ಷತಾ ಗುಂಪಿಗೆ ತಿಳಿಸಿ. ನಂತರ ಚಿಕ್ಕ ವರದಿ ಕಳುಹಿಸಿ. ಉಳಿದ ಪ್ರಶ್ನೆಗಳು ಕಾಯಬಹುದು.",
   more: "ಹೆಚ್ಚಿನ ವಿವರಗಳು (ಐಚ್ಛಿಕ)",
@@ -654,7 +662,7 @@ bn: {
   next: "পরবর্তী",
   back: "পিছনে",
   wa_share: "এই অভিযোগ নিরাপত্তা গ্রুপে পাঠান",
-  wa_pick: "অভিযোগটি লেখা অবস্থায় WhatsApp খুলবে। নিরাপত্তা গ্রুপ বেছে নিয়ে পাঠান চাপুন। সেখানে আপনার নাম ও নম্বর দেখা যাবে।",
+  wa_pick: "এতে আমাদের নিরাপত্তা WhatsApp গ্রুপ খুলবে। আপনার অভিযোগ আগেই কপি হয়ে আছে, শুধু পেস্ট করে পাঠান চাপুন। সেখানে আপনার নাম ও নম্বর দেখা যাবে।",
   n_wa: "আপনি নিজে অভিযোগটি নিরাপত্তা WhatsApp গ্রুপে শেয়ার করলে গ্রুপের সবাই তা আপনার নাম ও নম্বর সহ দেখবেন। শেয়ার করা আপনার ইচ্ছা।",
   lift_call: "লিফট আটকে গেছে? Johnson Lifts-এ ফোন করুন",
   lift_hint: "ব্রেকডাউন হেল্পলাইন, Johnson Care। লিফটের ভিতরের প্লেটে লেখা জব নম্বর জানান।",
@@ -678,6 +686,8 @@ bn: {
   q_phone: "আপনার ফোন নম্বর",
   e_phone: "দয়া করে 10 সংখ্যার ফোন নম্বর দিন।",
   home: "হোমে ফিরে যান",
+  copied: "অভিযোগ কপি হয়েছে। গ্রুপে পেস্ট করুন।",
+  wa_pick_media: "WhatsApp বেছে নিন, তারপর আমাদের নিরাপত্তা গ্রুপ বেছে নিন। আপনার ছবি ও বিবরণ একসঙ্গে যাবে। লেখা না দেখালে পেস্ট করুন, সেটি কপি করা আছে।",
   urgent_t: "এটি জরুরি মনে হচ্ছে। আগে সাহায্য নিন।",
   urgent_b: "এখনই ফোন করুন বা নিরাপত্তা গ্রুপকে জানান। তারপর একটি ছোট অভিযোগ পাঠান। বাকি প্রশ্ন পরে।",
   more: "আরও বিবরণ (ঐচ্ছিক)",
@@ -734,7 +744,7 @@ or: {
   next: "ଆଗକୁ",
   back: "ପଛକୁ",
   wa_share: "ଏହି ଅଭିଯୋଗ ସୁରକ୍ଷା ଗ୍ରୁପକୁ ପଠାନ୍ତୁ",
-  wa_pick: "ଅଭିଯୋଗ ଲେଖା ହୋଇଥିବା ଅବସ୍ଥାରେ WhatsApp ଖୋଲିବ। ସୁରକ୍ଷା ଗ୍ରୁପ ବାଛି ପଠାନ୍ତୁ ଦବାନ୍ତୁ। ସେଠାରେ ଆପଣଙ୍କ ନାମ ଓ ନମ୍ବର ଦେଖାଯିବ।",
+  wa_pick: "ଏହା ଆମ ସୁରକ୍ଷା WhatsApp ଗ୍ରୁପ ଖୋଲିବ। ଆପଣଙ୍କ ଅଭିଯୋଗ ପୂର୍ବରୁ କପି ହୋଇସାରିଛି, କେବଳ ପେଷ୍ଟ କରି ପଠାନ୍ତୁ ଦବାନ୍ତୁ। ସେଠାରେ ଆପଣଙ୍କ ନାମ ଓ ନମ୍ବର ଦେଖାଯିବ।",
   n_wa: "ଆପଣ ନିଜେ ଅଭିଯୋଗକୁ ସୁରକ୍ଷା WhatsApp ଗ୍ରୁପରେ ସେୟାର କଲେ ଗ୍ରୁପର ସମସ୍ତେ ତାହା ଆପଣଙ୍କ ନାମ ଓ ନମ୍ବର ସହିତ ଦେଖିବେ। ସେୟାର କରିବା ଆପଣଙ୍କ ଇଚ୍ଛା।",
   lift_call: "ଲିଫ୍ଟ ଅଟକିଛି? Johnson Lifts କୁ ଫୋନ କରନ୍ତୁ",
   lift_hint: "ବ୍ରେକଡାଉନ ହେଲ୍ପଲାଇନ, Johnson Care। ଲିଫ୍ଟ ଭିତରର ପ୍ଲେଟରେ ଥିବା ଜବ ନମ୍ବର କୁହନ୍ତୁ।",
@@ -758,6 +768,8 @@ or: {
   q_phone: "ଆପଣଙ୍କ ଫୋନ ନମ୍ବର",
   e_phone: "ଦୟାକରି 10 ଅଙ୍କର ଫୋନ ନମ୍ବର ଦିଅନ୍ତୁ।",
   home: "ହୋମକୁ ଫେରନ୍ତୁ",
+  copied: "ଅଭିଯୋଗ କପି ହେଲା। ଗ୍ରୁପରେ ପେଷ୍ଟ କରନ୍ତୁ।",
+  wa_pick_media: "WhatsApp ବାଛନ୍ତୁ, ତା'ପରେ ଆମ ସୁରକ୍ଷା ଗ୍ରୁପ ବାଛନ୍ତୁ। ଆପଣଙ୍କ ଫଟୋ ଓ ବିବରଣୀ ଏକାଠି ଯିବ। ଲେଖା ନ ଦେଖାଗଲେ ପେଷ୍ଟ କରନ୍ତୁ, ତାହା କପି ହୋଇଛି।",
   urgent_t: "ଏହା ଜରୁରୀ ଲାଗୁଛି। ପ୍ରଥମେ ସାହାଯ୍ୟ ନିଅନ୍ତୁ।",
   urgent_b: "ବର୍ତ୍ତମାନ ଫୋନ କରନ୍ତୁ କିମ୍ବା ସୁରକ୍ଷା ଗ୍ରୁପକୁ ଜଣାନ୍ତୁ। ତା'ପରେ ଛୋଟ ଅଭିଯୋଗ ପଠାନ୍ତୁ। ବାକି ପ୍ରଶ୍ନ ପରେ।",
   more: "ଅଧିକ ବିବରଣୀ (ଇଚ୍ଛାଧୀନ)",
@@ -814,7 +826,7 @@ pa: {
   next: "ਅੱਗੇ",
   back: "ਪਿੱਛੇ",
   wa_share: "ਇਹ ਸ਼ਿਕਾਇਤ ਸੁਰੱਖਿਆ ਗਰੁੱਪ ਨੂੰ ਭੇਜੋ",
-  wa_pick: "WhatsApp ਵਿੱਚ ਸ਼ਿਕਾਇਤ ਲਿਖੀ ਹੋਈ ਖੁੱਲ੍ਹੇਗੀ। ਸੁਰੱਖਿਆ ਗਰੁੱਪ ਚੁਣੋ ਅਤੇ ਭੇਜੋ ਦਬਾਓ। ਉੱਥੇ ਤੁਹਾਡਾ ਨਾਮ ਅਤੇ ਨੰਬਰ ਦਿਖੇਗਾ।",
+  wa_pick: "ਇਸ ਨਾਲ ਸਾਡਾ ਸੁਰੱਖਿਆ WhatsApp ਗਰੁੱਪ ਖੁੱਲ੍ਹੇਗਾ। ਤੁਹਾਡੀ ਸ਼ਿਕਾਇਤ ਪਹਿਲਾਂ ਹੀ ਕਾਪੀ ਹੈ, ਬੱਸ ਪੇਸਟ ਕਰੋ ਅਤੇ ਭੇਜੋ ਦਬਾਓ। ਉੱਥੇ ਤੁਹਾਡਾ ਨਾਮ ਅਤੇ ਨੰਬਰ ਦਿਖੇਗਾ।",
   n_wa: "ਜੇ ਤੁਸੀਂ ਖ਼ੁਦ ਆਪਣੀ ਸ਼ਿਕਾਇਤ ਸੁਰੱਖਿਆ WhatsApp ਗਰੁੱਪ ਵਿੱਚ ਸਾਂਝੀ ਕਰਦੇ ਹੋ, ਤਾਂ ਗਰੁੱਪ ਦੇ ਸਾਰੇ ਲੋਕ ਉਸਨੂੰ ਤੁਹਾਡੇ ਨਾਮ ਅਤੇ ਨੰਬਰ ਨਾਲ ਦੇਖਣਗੇ। ਸਾਂਝਾ ਕਰਨਾ ਤੁਹਾਡੀ ਮਰਜ਼ੀ ਹੈ।",
   lift_call: "ਲਿਫ਼ਟ ਫਸ ਗਈ? Johnson Lifts ਨੂੰ ਫ਼ੋਨ ਕਰੋ",
   lift_hint: "ਬ੍ਰੇਕਡਾਊਨ ਹੈਲਪਲਾਈਨ, Johnson Care। ਲਿਫ਼ਟ ਦੇ ਅੰਦਰ ਲੱਗੀ ਪਲੇਟ 'ਤੇ ਲਿਖਿਆ ਜੌਬ ਨੰਬਰ ਦੱਸੋ।",
@@ -838,6 +850,8 @@ pa: {
   q_phone: "ਤੁਹਾਡਾ ਫ਼ੋਨ ਨੰਬਰ",
   e_phone: "ਕਿਰਪਾ ਕਰਕੇ 10 ਅੰਕਾਂ ਦਾ ਫ਼ੋਨ ਨੰਬਰ ਪਾਓ।",
   home: "ਹੋਮ 'ਤੇ ਵਾਪਸ ਜਾਓ",
+  copied: "ਸ਼ਿਕਾਇਤ ਕਾਪੀ ਹੋ ਗਈ। ਗਰੁੱਪ ਵਿੱਚ ਪੇਸਟ ਕਰੋ।",
+  wa_pick_media: "WhatsApp ਚੁਣੋ, ਫਿਰ ਸਾਡਾ ਸੁਰੱਖਿਆ ਗਰੁੱਪ ਚੁਣੋ। ਤੁਹਾਡੀਆਂ ਫ਼ੋਟੋਆਂ ਅਤੇ ਵੇਰਵੇ ਇਕੱਠੇ ਜਾਣਗੇ। ਲਿਖਤ ਨਾ ਦਿਸੇ ਤਾਂ ਪੇਸਟ ਕਰੋ, ਉਹ ਕਾਪੀ ਹੈ।",
   urgent_t: "ਇਹ ਜ਼ਰੂਰੀ ਲੱਗਦਾ ਹੈ। ਪਹਿਲਾਂ ਮਦਦ ਲਓ।",
   urgent_b: "ਹੁਣੇ ਫ਼ੋਨ ਕਰੋ ਜਾਂ ਸੁਰੱਖਿਆ ਗਰੁੱਪ ਨੂੰ ਦੱਸੋ। ਫਿਰ ਛੋਟੀ ਸ਼ਿਕਾਇਤ ਭੇਜੋ। ਬਾਕੀ ਸਵਾਲ ਬਾਅਦ ਵਿੱਚ।",
   more: "ਹੋਰ ਵੇਰਵੇ (ਵਿਕਲਪਿਕ)",
@@ -894,7 +908,7 @@ ta: {
   next: "அடுத்து",
   back: "பின்செல்",
   wa_share: "இந்தப் புகாரைப் பாதுகாப்புக் குழுவுக்கு அனுப்பவும்",
-  wa_pick: "புகார் தட்டச்சு செய்யப்பட்ட நிலையில் WhatsApp திறக்கும். பாதுகாப்புக் குழுவைத் தேர்ந்தெடுத்து அனுப்பு அழுத்தவும். அங்கே உங்கள் பெயரும் எண்ணும் தெரியும்.",
+  wa_pick: "இது நமது பாதுகாப்பு WhatsApp குழுவைத் திறக்கும். உங்கள் புகார் ஏற்கனவே நகலெடுக்கப்பட்டுள்ளது, ஒட்டி அனுப்பு அழுத்தவும். அங்கே உங்கள் பெயரும் எண்ணும் தெரியும்.",
   n_wa: "நீங்களே உங்கள் புகாரைப் பாதுகாப்பு WhatsApp குழுவில் பகிர்ந்தால், குழுவில் உள்ள அனைவரும் அதை உங்கள் பெயர் மற்றும் எண்ணுடன் பார்ப்பார்கள். பகிர்வது உங்கள் விருப்பம்.",
   lift_call: "லிஃப்ட் சிக்கியதா? Johnson Lifts ஐ அழைக்கவும்",
   lift_hint: "பழுது உதவி எண், Johnson Care. லிஃப்ட் உள்ளே உள்ள தகட்டில் உள்ள வேலை எண்ணைச் சொல்லுங்கள்.",
@@ -918,6 +932,8 @@ ta: {
   q_phone: "உங்கள் தொலைபேசி எண்",
   e_phone: "தயவுசெய்து 10 இலக்க தொலைபேசி எண்ணை உள்ளிடவும்.",
   home: "முகப்புக்குத் திரும்பு",
+  copied: "புகார் நகலெடுக்கப்பட்டது. குழுவில் ஒட்டவும்.",
+  wa_pick_media: "WhatsApp ஐத் தேர்ந்தெடுத்து, பின் நமது பாதுகாப்புக் குழுவைத் தேர்ந்தெடுக்கவும். உங்கள் புகைப்படங்களும் விவரங்களும் ஒன்றாகச் செல்லும். உரை வரவில்லை என்றால் ஒட்டவும், அது நகலெடுக்கப்பட்டுள்ளது.",
   urgent_t: "இது அவசரமாகத் தெரிகிறது. முதலில் உதவி பெறுங்கள்.",
   urgent_b: "இப்போதே அழைக்கவும் அல்லது பாதுகாப்புக் குழுவுக்குத் தெரிவிக்கவும். பிறகு ஒரு சிறிய புகாரை அனுப்பவும். மற்ற கேள்விகள் காத்திருக்கலாம்.",
   more: "மேலும் விவரங்கள் (விருப்பத்தேர்வு)",
@@ -974,7 +990,7 @@ te: {
   next: "తర్వాత",
   back: "వెనుకకు",
   wa_share: "ఈ ఫిర్యాదును భద్రతా గ్రూప్‌కు పంపండి",
-  wa_pick: "ఫిర్యాదు టైప్ చేసి ఉన్న WhatsApp తెరుచుకుంటుంది. భద్రతా గ్రూప్‌ను ఎంచుకుని పంపు నొక్కండి. అక్కడ మీ పేరు మరియు నంబర్ కనిపిస్తాయి.",
+  wa_pick: "ఇది మన భద్రతా WhatsApp గ్రూప్‌ను తెరుస్తుంది. మీ ఫిర్యాదు ఇప్పటికే కాపీ అయింది, పేస్ట్ చేసి పంపు నొక్కండి. అక్కడ మీ పేరు మరియు నంబర్ కనిపిస్తాయి.",
   n_wa: "మీరే మీ ఫిర్యాదును భద్రతా WhatsApp గ్రూప్‌లో పంచుకుంటే, గ్రూప్‌లోని అందరూ దాన్ని మీ పేరు మరియు నంబర్‌తో చూస్తారు. పంచుకోవడం మీ ఇష్టం.",
   lift_call: "లిఫ్ట్ ఆగిపోయిందా? Johnson Lifts కు కాల్ చేయండి",
   lift_hint: "బ్రేక్‌డౌన్ హెల్ప్‌లైన్, Johnson Care. లిఫ్ట్ లోపల ఉన్న ప్లేట్‌పై ఉన్న జాబ్ నంబర్ చెప్పండి.",
@@ -998,6 +1014,8 @@ te: {
   q_phone: "మీ ఫోన్ నంబర్",
   e_phone: "దయచేసి 10 అంకెల ఫోన్ నంబర్ ఇవ్వండి.",
   home: "హోమ్‌కు తిరిగి వెళ్ళండి",
+  copied: "ఫిర్యాదు కాపీ అయింది. గ్రూప్‌లో పేస్ట్ చేయండి.",
+  wa_pick_media: "WhatsApp ఎంచుకోండి, తర్వాత మన భద్రతా గ్రూప్‌ను ఎంచుకోండి. మీ ఫోటోలు మరియు వివరాలు కలిసి వెళ్తాయి. టెక్స్ట్ కనిపించకపోతే పేస్ట్ చేయండి, అది కాపీ అయింది.",
   urgent_t: "ఇది అత్యవసరంగా అనిపిస్తోంది. ముందు సహాయం పొందండి.",
   urgent_b: "ఇప్పుడే కాల్ చేయండి లేదా భద్రతా గ్రూప్‌కు తెలియజేయండి. తర్వాత చిన్న ఫిర్యాదు పంపండి. మిగతా ప్రశ్నలు తర్వాత.",
   more: "మరిన్ని వివరాలు (ఐచ్ఛికం)",
@@ -1054,7 +1072,7 @@ ml: {
   next: "അടുത്തത്",
   back: "പിന്നോട്ട്",
   wa_share: "ഈ പരാതി സുരക്ഷാ ഗ്രൂപ്പിലേക്ക് അയയ്ക്കുക",
-  wa_pick: "പരാതി ടൈപ്പ് ചെയ്ത നിലയിൽ WhatsApp തുറക്കും. സുരക്ഷാ ഗ്രൂപ്പ് തിരഞ്ഞെടുത്ത് അയയ്ക്കുക അമർത്തുക. അവിടെ നിങ്ങളുടെ പേരും നമ്പറും കാണാം.",
+  wa_pick: "ഇത് നമ്മുടെ സുരക്ഷാ WhatsApp ഗ്രൂപ്പ് തുറക്കും. നിങ്ങളുടെ പരാതി ഇതിനകം കോപ്പി ചെയ്തിട്ടുണ്ട്, പേസ്റ്റ് ചെയ്ത് അയയ്ക്കുക അമർത്തുക. അവിടെ നിങ്ങളുടെ പേരും നമ്പറും കാണാം.",
   n_wa: "നിങ്ങൾ സ്വയം പരാതി സുരക്ഷാ WhatsApp ഗ്രൂപ്പിൽ പങ്കിട്ടാൽ, ഗ്രൂപ്പിലെ എല്ലാവരും അത് നിങ്ങളുടെ പേരും നമ്പറും സഹിതം കാണും. പങ്കിടുന്നത് നിങ്ങളുടെ ഇഷ്ടമാണ്.",
   lift_call: "ലിഫ്റ്റ് കുടുങ്ങിയോ? Johnson Lifts നെ വിളിക്കുക",
   lift_hint: "ബ്രേക്ക്ഡൗൺ ഹെൽപ്‌ലൈൻ, Johnson Care. ലിഫ്റ്റിനുള്ളിലെ പ്ലേറ്റിലുള്ള ജോബ് നമ്പർ പറയുക.",
@@ -1078,6 +1096,8 @@ ml: {
   q_phone: "നിങ്ങളുടെ ഫോൺ നമ്പർ",
   e_phone: "ദയവായി 10 അക്ക ഫോൺ നമ്പർ നൽകുക.",
   home: "ഹോമിലേക്ക് മടങ്ങുക",
+  copied: "പരാതി കോപ്പി ചെയ്തു. ഗ്രൂപ്പിൽ പേസ്റ്റ് ചെയ്യുക.",
+  wa_pick_media: "WhatsApp തിരഞ്ഞെടുക്കുക, പിന്നെ നമ്മുടെ സുരക്ഷാ ഗ്രൂപ്പ് തിരഞ്ഞെടുക്കുക. നിങ്ങളുടെ ഫോട്ടോകളും വിവരങ്ങളും ഒരുമിച്ച് പോകും. വാചകം കാണുന്നില്ലെങ്കിൽ പേസ്റ്റ് ചെയ്യുക, അത് കോപ്പി ചെയ്തിട്ടുണ്ട്.",
   urgent_t: "ഇത് അടിയന്തരമാണെന്ന് തോന്നുന്നു. ആദ്യം സഹായം തേടുക.",
   urgent_b: "ഇപ്പോൾ വിളിക്കുക അല്ലെങ്കിൽ സുരക്ഷാ ഗ്രൂപ്പിനെ അറിയിക്കുക. പിന്നെ ഒരു ചെറിയ പരാതി അയയ്ക്കുക. മറ്റ് ചോദ്യങ്ങൾ പിന്നീട്.",
   more: "കൂടുതൽ വിവരങ്ങൾ (ഓപ്ഷണൽ)",
@@ -1134,7 +1154,7 @@ mr: {
   next: "पुढे",
   back: "मागे",
   wa_share: "ही तक्रार सुरक्षा ग्रुपला पाठवा",
-  wa_pick: "तक्रार लिहिलेली असलेले WhatsApp उघडेल. सुरक्षा ग्रुप निवडा आणि पाठवा दाबा. तिथे तुमचे नाव आणि नंबर दिसेल.",
+  wa_pick: "यामुळे आपला सुरक्षा WhatsApp ग्रुप उघडेल. तुमची तक्रार आधीच कॉपी झाली आहे, फक्त पेस्ट करा आणि पाठवा दाबा. तिथे तुमचे नाव आणि नंबर दिसेल.",
   n_wa: "तुम्ही स्वतः तक्रार सुरक्षा WhatsApp ग्रुपमध्ये शेअर केल्यास ग्रुपमधील सर्वजण ती तुमच्या नाव आणि नंबरसह पाहतील. शेअर करणे तुमच्या मर्जीवर आहे.",
   lift_call: "लिफ्ट अडकली? Johnson Lifts ला फोन करा",
   lift_hint: "ब्रेकडाउन हेल्पलाइन, Johnson Care. लिफ्टमधील पाटीवरचा जॉब नंबर सांगा.",
@@ -1158,6 +1178,8 @@ mr: {
   q_phone: "तुमचा फोन नंबर",
   e_phone: "कृपया 10 अंकी फोन नंबर टाका.",
   home: "होमवर परत जा",
+  copied: "तक्रार कॉपी झाली. ग्रुपमध्ये पेस्ट करा.",
+  wa_pick_media: "WhatsApp निवडा, मग आपला सुरक्षा ग्रुप निवडा. तुमचे फोटो आणि तपशील एकत्र जातील. मजकूर दिसला नाही तर पेस्ट करा, तो कॉपी झाला आहे.",
   urgent_t: "हे तातडीचे वाटते. आधी मदत मिळवा.",
   urgent_b: "आत्ताच फोन करा किंवा सुरक्षा ग्रुपला कळवा. मग छोटी तक्रार पाठवा. बाकीचे प्रश्न नंतर.",
   more: "अधिक तपशील (ऐच्छिक)",
@@ -1214,7 +1236,7 @@ gu: {
   next: "આગળ",
   back: "પાછળ",
   wa_share: "આ ફરિયાદ સુરક્ષા ગ્રુપને મોકલો",
-  wa_pick: "ફરિયાદ લખેલી હાલતમાં WhatsApp ખુલશે. સુરક્ષા ગ્રુપ પસંદ કરો અને મોકલો દબાવો. ત્યાં તમારું નામ અને નંબર દેખાશે.",
+  wa_pick: "આનાથી આપણું સુરક્ષા WhatsApp ગ્રુપ ખુલશે. તમારી ફરિયાદ પહેલેથી કોપી થઈ ગઈ છે, બસ પેસ્ટ કરો અને મોકલો દબાવો. ત્યાં તમારું નામ અને નંબર દેખાશે.",
   n_wa: "જો તમે જાતે ફરિયાદ સુરક્ષા WhatsApp ગ્રુપમાં શેર કરો, તો ગ્રુપના બધા લોકો તે તમારા નામ અને નંબર સાથે જોશે. શેર કરવું તમારી મરજી છે.",
   lift_call: "લિફ્ટ અટકી ગઈ? Johnson Lifts ને ફોન કરો",
   lift_hint: "બ્રેકડાઉન હેલ્પલાઇન, Johnson Care. લિફ્ટની અંદરની પ્લેટ પરનો જોબ નંબર જણાવો.",
@@ -1238,6 +1260,8 @@ gu: {
   q_phone: "તમારો ફોન નંબર",
   e_phone: "કૃપા કરીને 10 અંકનો ફોન નંબર લખો.",
   home: "હોમ પર પાછા જાઓ",
+  copied: "ફરિયાદ કોપી થઈ ગઈ. ગ્રુપમાં પેસ્ટ કરો.",
+  wa_pick_media: "WhatsApp પસંદ કરો, પછી આપણું સુરક્ષા ગ્રુપ પસંદ કરો. તમારા ફોટા અને વિગતો સાથે જશે. લખાણ ન દેખાય તો પેસ્ટ કરો, તે કોપી થયેલું છે.",
   urgent_t: "આ તાત્કાલિક લાગે છે. પહેલાં મદદ મેળવો.",
   urgent_b: "અત્યારે ફોન કરો અથવા સુરક્ષા ગ્રુપને જાણ કરો. પછી ટૂંકી ફરિયાદ મોકલો. બાકીના પ્રશ્નો પછી.",
   more: "વધુ વિગતો (વૈકલ્પિક)",
@@ -1316,7 +1340,7 @@ const el = (tag, props = {}, kids = []) => { const n = Object.assign(document.cr
 
 // The last tower is remembered and highlighted, but the resident still taps it: nothing is sent silently.
 const state = { screen: 'home', category: '', tower: '' };
-let photos = [], voice = null, voiceType = '', recorder = null, recTimer = null;
+let photos = [], voice = null, voiceType = '', voiceBlob = null, recorder = null, recTimer = null;
 
 // Per-phone conveniences only. Storage can be blocked (private mode), so every call is guarded.
 const local = {
@@ -1473,7 +1497,7 @@ function resetForm() {
   ['description', 'spot', 'when', 'mygateRef'].forEach(id => { $(id).value = ''; }); // phone stays filled in
   document.querySelectorAll('input[name=mygate]').forEach(r => { r.checked = false; });
   $('mygateMore').hidden = true;
-  photos = []; $('thumbs').replaceChildren(); $('photos').value = '';
+  photos = []; shareFiles = []; $('thumbs').replaceChildren(); $('photos').value = '';
   $('delVoice').onclick();
   renderTiles(); renderPlaces(); onCategory();
 }
@@ -1551,6 +1575,7 @@ $('recBtn').addEventListener('click', async () => {
     stream.getTracks().forEach(t => t.stop());
     clearInterval(recTimer);
     const blob = new Blob(chunks, { type: recorder.mimeType });
+    voiceBlob = blob;
     voiceType = recorder.mimeType.split(';')[0];
     voice = await blobToBase64(blob);
     recorder = null;
@@ -1571,12 +1596,44 @@ $('recBtn').addEventListener('click', async () => {
   }, 250);
 });
 $('delVoice').onclick = () => {
-  voice = null; voiceType = '';
+  voice = null; voiceType = ''; voiceBlob = null;
   $('voiceBar').hidden = true; $('player').removeAttribute('src');
 };
 
 /* ---------- next / send ---------- */
 let failed = false;
+let lastMessage = '';
+let shareFiles = []; // photos and the voice note, ready for the phone's share sheet
+const b64ToFile = (b64, name, type) => {
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new File([bytes], name, { type });
+};
+const canShareFiles = files => files.length > 0 && !!navigator.share && !!navigator.canShare && navigator.canShare({ files });
+const hasGroup = () => /^https:\/\/chat\.whatsapp\.com\//.test(CFG.safetyGroup);
+// Copy inside the tap itself. execCommand works in the Apps Script iframe where the async clipboard API can be blocked.
+function copyText(text) {
+  const t = el('textarea', { value: text, readOnly: true });
+  t.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+  document.body.appendChild(t);
+  t.select();
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+  t.remove();
+  if (!ok && navigator.clipboard) navigator.clipboard.writeText(text).catch(() => { /* paste will be empty; text is still in the sheet */ });
+  return true;
+}
+$('waShare').addEventListener('click', e => {
+  if (!lastMessage) return;
+  copyText(lastMessage); // the text rides along on the clipboard in case WhatsApp drops it
+  $('copiedNote').hidden = false;
+  if (canShareFiles(shareFiles)) {
+    // Photos and voice note: the share sheet is the only way to hand files to WhatsApp. Resident picks the group.
+    e.preventDefault();
+    navigator.share({ files: shareFiles, text: lastMessage, title: 'Safety alert' }).catch(() => { /* cancelled: button still works */ });
+  }
+});
 // Same rule as normPhone_ in Code.gs: Indian mobile, +91 / 91 / 0 in front allowed.
 const normPhone = v => { const d = String(v || '').replace(/[\s()-]/g, '').replace(/^(\+?91|0)(?=\d{10}$)/, ''); return /^[6-9]\d{9}$/.test(d) ? d : ''; };
 function keepDraft() {
@@ -1595,9 +1652,9 @@ function collect() {
 }
 // Plain English for the group, whatever language the form was in. No contact details.
 function groupMessage(ticket, f) {
-  return ['SAFETY ALERT ' + ticket, f.category, [f.tower, f.spot.trim()].filter(Boolean).join(', '),
-    f.description.trim() || (f.voice ? '(voice note with the ticket)' : '(photo with the ticket)'),
-    'Sent from the ' + CFG.society + ' app (not an official society app)'].join('\n');
+  return [('SAFETY ALERT ' + ticket).trim(), f.category, [f.tower, f.spot.trim()].filter(Boolean).join(', '),
+    f.description.trim() || (f.voice ? '(voice note with the ticket)' : f.photos.length ? '(photo with the ticket)' : ''),
+    'Sent from the ' + CFG.society + ' app (not an official society app)'].filter(Boolean).join('\n');
 }
 function submit() {
   const form = collect();
@@ -1607,6 +1664,8 @@ function submit() {
   const needsDetail = form.category === 'Other safety risk' && !voice && !photos.length && form.description.trim().length < 3;
   if (needsDetail) return void ($('err').textContent = T('e_desc'));
   buzz();
+  // Copy now, while the tap still counts as a user action; after saving, the group opens by itself.
+  if (hasGroup()) copyText(groupMessage('', form));
   $('nextBtn').disabled = true;
   $('nextBtn').textContent = T('sending');
   google.script.run
@@ -1615,7 +1674,19 @@ function submit() {
       draft.clear();
       $('nextBtn').disabled = false; // ready for 'Report another'
       $('ticket').textContent = res.ticket;
-      $('waShare').href = 'https://wa.me/?text=' + encodeURIComponent(groupMessage(res.ticket, form));
+      lastMessage = groupMessage(res.ticket, form);
+      const ext = { 'audio/webm': 'webm', 'audio/mp4': 'm4a', 'audio/ogg': 'ogg' }[voiceType] || 'webm';
+      shareFiles = photos.map((b64, i) => b64ToFile(b64, res.ticket + '-' + (i + 1) + '.jpg', 'image/jpeg'))
+        .concat(voiceBlob ? [new File([voiceBlob], res.ticket + '-voice.' + ext, { type: voiceType || 'audio/webm' })] : []);
+      const withMedia = canShareFiles(shareFiles);
+      $('waPickNote').dataset.i = withMedia ? 'wa_pick_media' : 'wa_pick';
+      $('waPickNote').textContent = T($('waPickNote').dataset.i);
+      // WhatsApp has no link that drops text into a given group. So: copy the report, open the group, the resident pastes.
+      $('waShare').href = hasGroup() ? CFG.safetyGroup : 'https://wa.me/?text=' + encodeURIComponent(lastMessage);
+      $('copiedNote').hidden = !hasGroup();
+      // Open the group straight away. Only as the top page: inside the Apps Script frame WhatsApp refuses to load.
+      // No photos: open the group straight away. With photos the resident taps the button, so the files go too.
+      if (!withMedia && hasGroup() && window.top === window) setTimeout(() => { window.location.href = CFG.safetyGroup; }, 1500);
       go('done');
     })
     .withFailureHandler(x => {
