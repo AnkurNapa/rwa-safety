@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f6f7f9">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="RWA Safety">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>RWA Safety</title>
+<script>
+const BACKEND = "";
+window.google = { script: { run: (() => {
+  let ok = () => {}, fail = () => {};
+  const r = {
+    withSuccessHandler(f) { ok = f; return r; },
+    withFailureHandler(f) { fail = f; return r; },
+    submit(form) {
+      if (!BACKEND) { setTimeout(() => ok({ ticket: 'DEMO' }), 400); return; }
+      // text/plain body: Apps Script accepts it without a CORS preflight.
+      fetch(BACKEND, { method: 'POST', body: JSON.stringify(form) })
+        .then(res => res.json())
+        .then(d => (d.ok ? ok({ ticket: d.ticket }) : fail(new Error(d.error || 'e_generic'))))
+        .catch(() => fail(new Error('e_generic')));
+    },
+  };
+  return r;
+})() } };
+</script>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* Copperline Distillery tokens and patterns (light, locked house look) */
+  :root {
+    --bg: #f6f7f9; --surface: #ffffff; --surface2: #eef1f4; --line: #e2e6ea;
+    --copper: #4e79a7; --copper-hi: #36597f; --copper-soft: rgba(78,121,167,.08);
+    --amber: #e08b2d; --sage: #59a14f; --rust: #d65a57; --rust-soft: #fdf0ef;
+    --ink: #2b3137; --ink-dim: #667085; --ink-faint: #98a2b3;
+    --mono: 'JetBrains Mono', ui-monospace, monospace;
+    --r: 10px; --ease: cubic-bezier(.2,.8,.2,1);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); }
+  body { color: var(--ink); font: 14.5px/1.5 'Archivo', system-ui, sans-serif;
+    -webkit-tap-highlight-color: transparent; overscroll-behavior-y: none; }
+  button, a, label { touch-action: manipulation; -webkit-user-select: none; user-select: none; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  .app { max-width: 520px; margin: 0 auto; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; }
+
+  /* header: Copperline brand + sub, sticky with blur like nav.tabs */
+  header { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; gap: 10px;
+    padding: calc(12px + env(safe-area-inset-top)) 16px 12px; border-bottom: 1px solid var(--line);
+    background: rgba(246,247,249,.94); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+  .brand { flex: 1; min-width: 0; }
+  h1 { font-weight: 700; font-size: 20px; letter-spacing: -.01em; line-height: 1; }
+  h1 em { color: var(--copper); font-style: normal; }
+  .sub { color: var(--ink-dim); font-size: 11.5px; margin-top: 5px; letter-spacing: .04em;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .iconbtn { width: 38px; height: 38px; flex: none; display: grid; place-items: center; border-radius: 50%;
+    background: var(--surface); border: 1px solid var(--line); color: var(--ink); transition: border-color .2s; }
+  .iconbtn:hover { border-color: var(--copper); }
+  .iconbtn:active { transform: scale(.94); }
+  .uchip { display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 12px 0 10px; flex: none;
+    border-radius: 999px; background: var(--surface); border: 1px solid var(--line); color: var(--ink-faint); }
+  .uchip:hover, .uchip:focus-within { border-color: var(--copper); }
+  .uchip select { appearance: none; -webkit-appearance: none; border: 0; background: none; outline: none;
+    font: 600 12.5px 'Archivo', sans-serif; color: var(--ink); max-width: 88px; }
+
+  /* step pills, styled like Copperline nav.tabs */
+  nav.tabs { display: flex; gap: 6px; padding: 10px 16px 0; }
+  nav.tabs span { flex: 1; text-align: center; font: 600 11.5px var(--mono); letter-spacing: .06em; color: var(--ink-faint);
+    padding: 7px 0; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); transition: all .25s var(--ease); }
+  nav.tabs span.done { color: var(--copper-hi); border-color: rgba(78,121,167,.35); }
+  nav.tabs span.on { color: #fff; background: var(--copper); border-color: var(--copper); }
+
+  main { flex: 1; padding: 14px 16px 20px; }
+  .screen { animation: in .26s var(--ease); }
+  @keyframes in { from { opacity: 0; transform: translateX(10px); } }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 18px; margin-bottom: 12px; }
+  .ctitle { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+  .csub { font-size: 12px; color: var(--ink-faint); line-height: 1.45; }
+  .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: .14em; color: var(--ink-dim); margin: 4px 0 10px; }
+  h2 { font-size: 19px; line-height: 1.3; font-weight: 700; letter-spacing: -.01em; margin: 2px 0 14px; }
+
+  /* attention banner (Copperline .attn) */
+  .attn { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 10px 12px; }
+  .alabel { font: 600 11px var(--mono); letter-spacing: .1em; color: var(--rust); margin-right: 2px; }
+  .attn a { display: inline-flex; align-items: center; gap: 6px; color: var(--ink); text-decoration: none; font: 600 14px var(--mono);
+    background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px; transition: all .2s; }
+  .attn a svg { color: var(--rust); }
+  .attn a:hover { border-color: var(--rust); }
+  .attn a:active { transform: scale(.96); }
+  .attn .emsg { flex-basis: 100%; font-size: 12px; color: var(--ink-dim); }
+
+  /* hero + primary actions */
+  .hero h2 { font-size: 24px; margin-bottom: 6px; }
+  .primary { width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 16px; border-radius: var(--r);
+    background: var(--copper); color: #fff; font-weight: 600; font-size: 15.5px; transition: background .2s, transform .15s var(--ease); }
+  .primary:hover { background: var(--copper-hi); }
+  .primary:active { transform: scale(.98); }
+  .primary:disabled { opacity: .55; cursor: wait; }
+  .wa, .ghost-wa { width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px;
+    border-radius: var(--r); font-weight: 600; text-decoration: none; transition: transform .15s var(--ease); }
+  .wa { background: var(--sage); color: #fff; }
+  .ghost-wa { margin-top: 10px; background: var(--surface); border: 1px solid var(--line); color: #3f7a37; }
+  .ghost-wa:hover { border-color: var(--sage); }
+  .wa:active, .ghost-wa:active { transform: scale(.98); }
+  .note { font-size: 11.5px; color: var(--ink-faint); margin-top: 7px; text-align: center; }
+
+  /* lift helpline card */
+  .lifthead { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 12px; }
+  .ic { width: 38px; height: 38px; flex: none; border-radius: 10px; display: grid; place-items: center; background: var(--copper-soft); color: var(--copper); }
+  .ic.r { background: var(--rust-soft); color: var(--rust); }
+  .callbtn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 13px; border-radius: var(--r);
+    border: 1.5px solid var(--rust); color: var(--rust); text-decoration: none; font: 600 16px var(--mono); background: var(--surface); }
+  .callbtn:active { transform: scale(.98); }
+  .alts { display: flex; gap: 6px; justify-content: center; margin-top: 8px; }
+  .alts a { font: 600 12px var(--mono); color: var(--ink-dim); text-decoration: none; border: 1px solid var(--line);
+    border-radius: 999px; padding: 6px 12px; background: var(--surface); }
+
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .notice-amber { background: #fff7ec; border-color: #f2d3a8; font-size: 13px; }
+  .notice-amber b { color: #9a5a12; }
+
+  /* category tiles: Copperline KPI cards */
+  .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .tile { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; min-height: 104px; padding: 14px;
+    text-align: left; border-radius: var(--r); background: var(--surface); border: 1px solid var(--line);
+    font-size: 13px; font-weight: 600; line-height: 1.3; transition: border-color .2s, transform .15s var(--ease); }
+  .tile:hover { border-color: var(--copper); }
+  .tile:active { transform: scale(.97); }
+  .tile.urg::after { content: ""; position: absolute; top: 14px; right: 14px; width: 7px; height: 7px; border-radius: 50%; background: var(--rust); }
+  .tile[aria-pressed=true] { border-color: var(--copper); box-shadow: inset 0 0 0 1px var(--copper); background: var(--copper-soft); }
+
+  /* towers and areas */
+  .towers { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .tower { aspect-ratio: 1; border-radius: var(--r); background: var(--surface); border: 1px solid var(--line);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all .2s; }
+  .tower:hover { border-color: var(--copper); }
+  .tower:active { transform: scale(.95); }
+  .tower small { font-size: 10px; color: var(--ink-faint); letter-spacing: .06em; }
+  .tower span { font: 600 24px var(--mono); }
+  .areas { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+  .area { padding: 13px 16px; border-radius: var(--r); background: var(--surface); border: 1px solid var(--line);
+    font-weight: 600; font-size: 13.5px; text-align: left; transition: all .2s; }
+  .area:hover { border-color: var(--copper); }
+  .tower[aria-pressed=true], .area[aria-pressed=true] { border-color: var(--copper); background: var(--copper); color: #fff; }
+  .tower[aria-pressed=true] small { color: rgba(255,255,255,.8); }
+
+  .urgent { border-left: 3px solid var(--rust); }
+  .urgent .ctitle { color: #a33a37; }
+  .urgent .attn { margin: 12px 0 10px; padding: 0; border: 0; }
+  .urgent .attn a { color: var(--rust); }
+
+  /* fields */
+  .field { margin-top: 16px; }
+  .q { display: block; font-size: 13.5px; font-weight: 600; margin-bottom: 6px; }
+  .hint { font-weight: 400; font-size: 11.5px; color: var(--ink-faint); }
+  input[type=text], input[type=datetime-local], textarea, select {
+    width: 100%; font: 16px 'Archivo', sans-serif; color: var(--ink); background: var(--surface);
+    border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; outline: none; transition: border-color .2s, box-shadow .2s; }
+  textarea { min-height: 130px; resize: vertical; }
+  input:focus, textarea:focus, select:focus { border-color: var(--copper); box-shadow: 0 0 0 3px rgba(78,121,167,.13); }
+  .media { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+  .mbtn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 13px 10px; border-radius: var(--r);
+    border: 1px dashed #c9d1da; background: var(--surface); font-weight: 600; font-size: 13.5px; color: var(--ink); cursor: pointer; }
+  .mbtn:hover { border-color: var(--copper); }
+  .mbtn:active { transform: scale(.97); }
+  .mbtn.live { border-style: solid; border-color: var(--rust); color: var(--rust); }
+  .mbtn .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--rust); }
+  .mbtn.live .dot { animation: pulse 1.1s infinite; }
+  @keyframes pulse { 50% { opacity: .2; } }
+  .mbtn input { display: none; }
+  .voicebar { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+  .voicebar audio { flex: 1; height: 40px; min-width: 0; }
+  .timer { font: 600 12.5px var(--mono); color: var(--rust); }
+  .thumbs { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .thumbs img { width: 66px; height: 66px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); }
+  .mhint { font-size: 11.5px; color: var(--ink-faint); margin-top: 8px; }
+
+  .seg { display: inline-flex; gap: 6px; }
+  .seg input { position: absolute; opacity: 0; pointer-events: none; }
+  .seg label { cursor: pointer; padding: 10px 24px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface);
+    font-size: 12.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-dim); transition: all .2s; }
+  .seg label:hover { color: var(--copper-hi); border-color: var(--copper); }
+  .seg input:checked + label { background: var(--copper); border-color: var(--copper); color: #fff; font-weight: 600; }
+  .seg input:focus-visible + label { box-shadow: 0 0 0 3px rgba(78,121,167,.25); }
+  .subbox { background: var(--surface2); border-radius: var(--r); padding: 12px; margin-top: 10px; }
+  .subbox .field:first-child { margin-top: 0; }
+
+  details.card { padding: 14px 16px; }
+  summary { cursor: pointer; font-weight: 600; font-size: 14px; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: "+"; font: 600 15px var(--mono); color: var(--ink-faint); }
+  details[open] summary::after { content: "\2212"; }
+  details h3 { font-size: 12.5px; font-weight: 600; margin: 14px 0 3px; }
+  details p { font-size: 12.5px; color: var(--ink-dim); }
+  .consent { display: flex; gap: 12px; align-items: flex-start; font-size: 13px; cursor: pointer; }
+  .consent input { width: 20px; height: 20px; margin-top: 1px; flex: none; accent-color: var(--copper); }
+  .card:has(.consent input:checked) { border-color: var(--copper); }
+
+  /* bottom action bar */
+  .bar { position: sticky; bottom: 0; z-index: 30; padding: 10px 16px calc(12px + env(safe-area-inset-bottom));
+    background: rgba(246,247,249,.94); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-top: 1px solid var(--line); }
+  .error { color: var(--rust); font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+  .error:empty { display: none; }
+
+  /* done */
+  .done { text-align: center; }
+  .live { display: inline-flex; align-items: center; gap: 7px; background: var(--surface2); border: 1px solid var(--line);
+    border-radius: 999px; padding: 7px 14px; font: 600 13px 'Archivo', sans-serif; color: #3f7a37; margin: 8px 0 14px; text-align: left; }
+  .dotlive { width: 7px; height: 7px; border-radius: 50%; background: var(--sage); animation: ring 1.8s infinite; }
+  @keyframes ring { 0%,100% { box-shadow: 0 0 0 0 rgba(89,161,79,.5); } 50% { box-shadow: 0 0 0 6px rgba(89,161,79,0); } }
+  .ticket { font: 600 30px var(--mono); color: var(--copper-hi); letter-spacing: -.01em; margin: 4px 0 8px; }
+  .done .csub { margin-bottom: 18px; font-size: 13px; color: var(--ink-dim); }
+
+  .hp { position: absolute; left: -9999px; }
+  [hidden] { display: none !important; }
+  :focus-visible { outline: 2px solid var(--copper); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<div style="background:#d65a57;color:#fff;text-align:center;font:600 13px Archivo,sans-serif;padding:8px 12px">
+DEMO MODE. Reports are not saved yet. In an emergency call 112.</div>
+<div class="app">
+  <header>
+    <button class="iconbtn" id="backBtn" type="button" hidden>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <div class="brand"><h1>RWA <em>Safety</em></h1><div class="sub" id="org"></div></div>
+    <label class="uchip">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg>
+      <select id="lang" aria-label="Language"></select>
+    </label>
+  </header>
+  <nav class="tabs" id="steps" hidden><span>01</span><span>02</span><span>03</span><span>04</span></nav>
+
+  <main>
+    <!-- HOME -->
+    <section class="screen" data-screen="home">
+      <div class="attn">
+        <span class="alabel">SOS</span>
+        <a href="tel:112"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>112</a>
+        <a href="tel:101"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 2c1 3 4 5 4 9a4 4 0 0 1-8 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 0-8z"/></svg>101</a>
+        <a href="tel:108"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M12 8v8M8 12h8"/></svg>108</a>
+        <span class="emsg" data-i="emerg"></span>
+      </div>
+
+      <div class="card hero">
+        <h2 data-i="title"></h2>
+        <p class="csub" data-i="safe"></p>
+      </div>
+
+      <div class="card" data-lift></div>
+
+      <button class="primary" type="button" id="startBtn"><span data-i="start"></span>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+      <a class="ghost-wa" target="_blank" rel="noopener" data-wa><span data-i="wa_btn"></span></a>
+      <p class="note" data-i="wa_note"></p>
+
+      <div class="card notice-amber" style="margin-top:14px"><b data-i="childT"></b> <span data-i="childB"></span></div>
+    </section>
+
+    <!-- STEP 1: WHAT -->
+    <section class="screen" data-screen="what" hidden>
+      <h2 data-i="q_category"></h2>
+      <div class="tiles" id="catGrid"></div>
+    </section>
+
+    <!-- STEP 2: WHERE -->
+    <section class="screen" data-screen="where" hidden>
+      <div class="card urgent" id="urgentBox" hidden>
+        <div class="ctitle" data-i="urgent_t"></div>
+        <div class="csub" data-i="urgent_b"></div>
+        <div class="attn">
+          <a href="tel:112">112</a><a href="tel:101">101</a><a href="tel:108">108</a>
+        </div>
+        <div data-lift id="liftUrgent"></div>
+        <a class="wa" target="_blank" rel="noopener" data-wa style="margin-top:10px"><span data-i="wa_btn"></span></a>
+      </div>
+      <h2 data-i="q_tower"></h2>
+      <div class="towers" id="towerGrid"></div>
+      <div class="areas" id="areaList"></div>
+      <div class="field">
+        <label class="q" for="spot"><span data-i="q_spot"></span> <span class="hint" data-i="spot_hint"></span></label>
+        <input type="text" id="spot" maxlength="200">
+      </div>
+    </section>
+
+    <!-- STEP 3: DETAILS -->
+    <section class="screen" data-screen="details" hidden>
+      <h2 data-i="q_desc"></h2>
+      <textarea id="description" maxlength="2000" data-ph="desc_ph"></textarea>
+      <div class="media">
+        <button type="button" class="mbtn" id="recBtn"><span class="dot"></span><span id="recLabel"></span><span class="timer" id="timer" hidden></span></button>
+        <label class="mbtn"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          <span data-i="q_photos"></span><input type="file" id="photos" accept="image/*" multiple></label>
+      </div>
+      <div class="voicebar" id="voiceBar" hidden>
+        <audio id="player" controls></audio>
+        <button type="button" class="iconbtn" id="delVoice"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button>
+      </div>
+      <div class="thumbs" id="thumbs"></div>
+      <p class="mhint" id="voiceHint" data-i="voice_hint"></p>
+      <p class="mhint" id="photoHint"></p>
+    </section>
+
+    <!-- STEP 4: SEND -->
+    <section class="screen" data-screen="send" hidden>
+      <h2 data-i="send"></h2>
+      <details class="card" id="more" open>
+        <summary data-i="more"></summary>
+        <div class="field">
+          <label class="q" for="when"><span data-i="q_when"></span> <span class="hint" data-i="optional"></span></label>
+          <input type="datetime-local" id="when">
+        </div>
+        <div class="field">
+          <span class="q"><span data-i="q_mygate"></span> <span class="hint" data-i="optional"></span></span>
+          <div class="seg" role="radiogroup">
+            <input type="radio" name="mygate" id="mgYes" value="Yes"><label for="mgYes" data-i="yes"></label>
+            <input type="radio" name="mygate" id="mgNo" value="No"><label for="mgNo" data-i="no"></label>
+          </div>
+          <div class="subbox" id="mygateMore" hidden>
+            <div class="field">
+              <label class="q" for="mygateRef"><span data-i="q_mygate_ref"></span> <span class="hint" data-i="optional"></span></label>
+              <input type="text" id="mygateRef" maxlength="40" inputmode="numeric">
+            </div>
+            <div class="field">
+              <label class="q" for="mygateOutcome" data-i="q_mygate_out"></label>
+              <select id="mygateOutcome"></select>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label class="q" for="contact"><span data-i="q_contact"></span> <span class="hint" data-i="contact_hint"></span></label>
+          <input type="text" id="contact" maxlength="200" autocomplete="off">
+        </div>
+      </details>
+      <details class="card"><summary data-i="notice_summary"></summary><div id="notice"></div></details>
+      <div class="card">
+        <label class="consent"><input type="checkbox" id="consent"><span data-i="consent"></span></label>
+      </div>
+      <p class="csub" data-i="safe"></p>
+      <input type="text" id="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+    </section>
+
+    <!-- DONE -->
+    <section class="screen done" data-screen="done" hidden>
+      <div class="card">
+        <div class="live"><span class="dotlive"></span><span data-i="done1"></span></div>
+        <div class="lbl">Ticket</div>
+        <div class="ticket" id="ticket"></div>
+        <p class="csub" data-i="done2"></p>
+        <a class="wa" id="waShare" target="_blank" rel="noopener"><span data-i="wa_share"></span></a>
+        <p class="note" data-i="wa_pick"></p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="bar" id="bar" hidden>
+    <div class="error" id="err" role="alert"></div>
+    <button class="primary" type="button" id="nextBtn"></button>
+  </footer>
+</div>
+
+<script>
+/* Page text in 11 languages. Sheet values stay in English; only labels are translated.
+   CAT, AREA and OUT follow the English lists below, in the same order. */
+const EN_CAT = ["Lift stuck or not working", "Lift alarm or intercom not working", "Fire, smoke or burning smell", "Fire equipment missing or not working", "Fire exit or staircase blocked", "Gas leak smell", "Electrical danger (open wires, sparks, shocks)", "Structural danger (cracks, falling plaster, broken railing)", "Flooding or water near electrics", "Security or suspicious person", "Danger to children (open shaft, unsafe play area)", "Other safety risk"];
+const EN_AREA = ["Tower", "Parking", "Clubhouse", "Gate and driveway", "Garden or play area", "Other common area"];
+const EN_OUT = ["No response", "Acknowledged but not fixed", "Closed without a fix", "Fixed"];
+
+const I18N = {
+en: {
+  _name: "English",
+  title: "Report a safety problem",
+  start: "Report a problem",
+  next: "Next",
+  back: "Back",
+  wa_share: "Send this report to the safety group",
+  wa_pick: "WhatsApp will open with the report typed in. Choose the safety group and press send. Your name and number will be visible there.",
+  n_wa: "If you share your report in the safety WhatsApp group yourself, everyone in that group sees it with your name and number. That sharing is your choice.",
+  lift_call: "Lift stuck? Call Johnson Lifts",
+  lift_hint: "Breakdown helpline, Johnson Care. Tell them the job number on the plate inside the lift.",
+  urgent_t: "This sounds urgent. Get help first.",
+  urgent_b: "Call now or alert the safety group. Then send a short report. The other questions can wait.",
+  more: "More details (optional)",
+  emerg: "Emergency right now? Call 112 first. Fire 101. Ambulance 108.",
+  wa_btn: "Alert the safety WhatsApp group",
+  wa_note: "Your name and number will be visible to everyone in the group.",
+  wa_after: "If it is urgent, alert the safety group now as well.",
+  q_voice: "Voice note",
+  voice_hint: "(optional, up to 2 minutes. Your voice may identify you. Typing keeps you anonymous)",
+  rec: "Record",
+  stop: "Stop",
+  del: "Delete",
+  e_mic: "The microphone could not be used. Please type instead.",
+  n_voice: "We also keep a voice note if you record one. It is erased together with the photos.",
+  safe: "We do not ask for your name. Contact details are optional. Only the data contact sees them. If you share the report on WhatsApp, the group will see your name and number.",
+  childT: "Children working or in danger?",
+  childB: "Call Childline on 1098 or the police on 112. You can stay anonymous. Please do not photograph children or upload their photos here.",
+  q_category: "What is the problem?", pick_category: "Choose a category",
+  q_tower: "Where?", pick_tower: "Choose a tower or area",
+  q_spot: "Exact spot", spot_hint: "(optional, e.g. 12th floor lift lobby, basement 2 pillar 40)",
+  q_when: "When did it happen?", optional: "(optional)",
+  q_desc: "What happened?", desc_ph: "Describe the problem, not the person. Say how often it happens.",
+  q_photos: "Photos", photo_hint: "(optional, up to {n}. Location data is removed before upload)",
+  q_mygate: "Did you already raise this on MyGate?", yes: "Yes", no: "No",
+  q_mygate_ref: "MyGate ticket number", q_mygate_out: "What happened on MyGate?", pick_outcome: "Choose one",
+  q_contact: "Phone or email for a reply", contact_hint: "(optional, only the data contact sees it)",
+  notice_summary: "Privacy notice (please read)",
+  consent: "I have read the privacy notice. I agree that the association may use this report and its photos for the purposes it describes.",
+  send: "Send report", sending: "Sending...",
+  done1: "Thank you. Your report has been logged.",
+  done2: "Keep this ticket number. Quote it if you want to follow up, correct or delete your report.",
+  e_place: "Please choose a category and a place.", e_desc: "Please describe the problem in a little more detail or record a voice note.",
+  e_consent: "Please read the privacy notice and tick the box.", e_mygate: "Please answer the MyGate question.",
+  e_photo: "This photo could not be read. Please try another.", e_photos_max: "Only the first {n} photos were kept.",
+  e_long: "One of the answers is too long.", e_rate: "Too many reports in the last hour. Please try again later.",
+  e_generic: "Something went wrong. Please try again.",
+  n_version: "Version {v}.",
+  n_who_h: "Who we are", n_who: "{society} runs this form. Under the Digital Personal Data Protection Act 2023 the association is the Data Fiduciary. Contact: {email}.",
+  n_what_h: "What we collect", n_what: "The type, place and time of the problem. Your description. Up to {n} photos. Whether you raised it on MyGate. A phone number or email only if you choose to give one. We do not ask for your name. Photos are re-saved on your phone before upload. This removes the location your camera stores in them.",
+  n_why_h: "Why", n_why: "To log problems, follow them up until they are fixed and share anonymous totals with residents. We use your data for nothing else.",
+  n_sees_h: "Who sees it", n_sees: "A small group of resident monitors appointed by the association sees reports and photos. They never see contact details. Only the association's data contact sees those. Data is stored in Google Drive and Google Sheets under the association's account. We never sell it or post it in WhatsApp groups.",
+  n_long_h: "How long we keep it", n_long: "Photos, descriptions and contact details are erased {d} days after a ticket is closed. Anonymous counts are kept.",
+  n_rights_h: "Your rights", n_rights: "You may withdraw consent at any time. You may also ask to see, correct or erase your report. Email {email} with your ticket number. Withdrawing consent is as easy as giving it. You may nominate someone to act for you. If you are not happy with our reply you can complain to the Data Protection Board of India.",
+  n_others_h: "About other people", n_others: "Describe the problem, not the person. Do not upload photos of faces, children or the inside of anyone's home. We will edit or remove reports that name or shame people.",
+  n_lang: "",
+  CAT: EN_CAT, AREA: EN_AREA, OUT: EN_OUT,
+},
+hi: {
+  _name: "हिन्दी",
+  title: "सुरक्षा समस्या दर्ज करें",
+  start: "समस्या दर्ज करें",
+  next: "आगे",
+  back: "पीछे",
+  wa_share: "यह शिकायत सुरक्षा ग्रुप में भेजें",
+  wa_pick: "WhatsApp में शिकायत लिखी हुई खुलेगी। सुरक्षा ग्रुप चुनें और भेजें दबाएँ। वहाँ आपका नाम और नंबर दिखेगा।",
+  n_wa: "अगर आप खुद अपनी शिकायत सुरक्षा WhatsApp ग्रुप में साझा करते हैं, तो ग्रुप के सभी लोग उसे आपके नाम और नंबर के साथ देखेंगे। साझा करना आपकी मर्ज़ी है।",
+  lift_call: "लिफ़्ट फँसी है? Johnson Lifts को कॉल करें",
+  lift_hint: "ब्रेकडाउन हेल्पलाइन, Johnson Care। लिफ़्ट के अंदर लगी प्लेट पर लिखा जॉब नंबर बताएँ।",
+  urgent_t: "यह ज़रूरी लगता है। पहले मदद लें।",
+  urgent_b: "अभी कॉल करें या सुरक्षा ग्रुप को सूचित करें। फिर छोटी शिकायत भेजें। बाकी सवाल बाद में।",
+  more: "और जानकारी (वैकल्पिक)",
+  emerg: "अभी आपातकाल है? पहले 112 पर कॉल करें। आग 101। एम्बुलेंस 108।",
+  wa_btn: "सुरक्षा WhatsApp ग्रुप को सूचित करें",
+  wa_note: "ग्रुप में सभी को आपका नाम और नंबर दिखेगा।",
+  wa_after: "अगर मामला ज़रूरी है, तो अभी सुरक्षा ग्रुप को भी सूचित करें।",
+  q_voice: "वॉइस नोट",
+  voice_hint: "(वैकल्पिक, अधिकतम 2 मिनट। आपकी आवाज़ से आपकी पहचान हो सकती है। लिखने से आप गुमनाम रहते हैं)",
+  rec: "रिकॉर्ड करें",
+  stop: "रोकें",
+  del: "हटाएँ",
+  e_mic: "माइक्रोफ़ोन इस्तेमाल नहीं हो सका। कृपया लिखकर बताएँ।",
+  n_voice: "अगर आप वॉइस नोट रिकॉर्ड करते हैं, तो हम उसे भी रखते हैं। इसे फ़ोटो के साथ ही मिटा दिया जाता है।",
+  safe: "हम आपका नाम नहीं पूछते। संपर्क जानकारी देना वैकल्पिक है। उसे केवल डेटा संपर्क व्यक्ति देखता है। अगर आप शिकायत WhatsApp पर साझा करते हैं, तो ग्रुप आपका नाम और नंबर देखेगा।",
+  childT: "बच्चे काम कर रहे हैं या खतरे में हैं?",
+  childB: "चाइल्डलाइन 1098 या पुलिस 112 पर कॉल करें। आप अपना नाम गुप्त रख सकते हैं। कृपया बच्चों की फ़ोटो न लें और न ही यहाँ अपलोड करें।",
+  q_category: "समस्या क्या है?", pick_category: "श्रेणी चुनें",
+  q_tower: "कहाँ?", pick_tower: "टावर या जगह चुनें",
+  q_spot: "सही जगह", spot_hint: "(वैकल्पिक, जैसे 12वीं मंज़िल लिफ़्ट लॉबी, बेसमेंट 2 पिलर 40)",
+  q_when: "यह कब हुआ?", optional: "(वैकल्पिक)",
+  q_desc: "क्या हुआ?", desc_ph: "समस्या बताइए, व्यक्ति के बारे में नहीं। यह कितनी बार होता है, यह भी लिखें।",
+  q_photos: "फ़ोटो", photo_hint: "(वैकल्पिक, अधिकतम {n}। अपलोड से पहले लोकेशन जानकारी हटा दी जाती है)",
+  q_mygate: "क्या आपने यह पहले MyGate पर दर्ज किया था?", yes: "हाँ", no: "नहीं",
+  q_mygate_ref: "MyGate टिकट नंबर", q_mygate_out: "MyGate पर क्या हुआ?", pick_outcome: "एक चुनें",
+  q_contact: "जवाब के लिए फ़ोन या ईमेल", contact_hint: "(वैकल्पिक, केवल डेटा संपर्क व्यक्ति इसे देखता है)",
+  notice_summary: "गोपनीयता सूचना (कृपया पढ़ें)",
+  consent: "मैंने गोपनीयता सूचना पढ़ ली है। मैं सहमत हूँ कि एसोसिएशन इस शिकायत और इसकी फ़ोटो का उपयोग सूचना में बताए गए उद्देश्यों के लिए कर सकता है।",
+  send: "शिकायत भेजें", sending: "भेजा जा रहा है...",
+  done1: "धन्यवाद। आपकी शिकायत दर्ज हो गई है।",
+  done2: "यह टिकट नंबर संभाल कर रखें। आगे पूछताछ, सुधार या शिकायत हटवाने के लिए इसे बताएँ।",
+  e_place: "कृपया श्रेणी और जगह चुनें।", e_desc: "कृपया समस्या थोड़ा और विस्तार से लिखें या वॉइस नोट रिकॉर्ड करें।",
+  e_consent: "कृपया गोपनीयता सूचना पढ़ें और बॉक्स पर टिक करें।", e_mygate: "कृपया MyGate वाले सवाल का जवाब दें।",
+  e_photo: "यह फ़ोटो पढ़ी नहीं जा सकी। कृपया दूसरी फ़ोटो आज़माएँ।", e_photos_max: "केवल पहली {n} फ़ोटो रखी गईं।",
+  e_long: "एक जवाब बहुत लंबा है।", e_rate: "पिछले एक घंटे में बहुत अधिक शिकायतें आईं। कृपया थोड़ी देर बाद कोशिश करें।",
+  e_generic: "कुछ गड़बड़ हो गई। कृपया फिर से कोशिश करें।",
+  n_version: "संस्करण {v}।",
+  n_who_h: "हम कौन हैं", n_who: "यह फ़ॉर्म {society} चलाता है। डिजिटल व्यक्तिगत डेटा संरक्षण अधिनियम 2023 के तहत एसोसिएशन डेटा फ़िड्यूशियरी है। संपर्क: {email}।",
+  n_what_h: "हम क्या लेते हैं", n_what: "समस्या का प्रकार, जगह और समय। आपका विवरण। अधिकतम {n} फ़ोटो। क्या आपने इसे MyGate पर दर्ज किया था। फ़ोन नंबर या ईमेल केवल तभी, जब आप देना चाहें। हम आपका नाम नहीं पूछते। अपलोड से पहले फ़ोटो आपके फ़ोन पर दोबारा सेव होती हैं। इससे कैमरे द्वारा जोड़ी गई लोकेशन हट जाती है।",
+  n_why_h: "क्यों", n_why: "समस्याएँ दर्ज करने, ठीक होने तक उन पर नज़र रखने और निवासियों को बिना नाम के कुल आँकड़े बताने के लिए। आपका डेटा किसी और काम में नहीं लिया जाता।",
+  n_sees_h: "इसे कौन देखता है", n_sees: "एसोसिएशन द्वारा नियुक्त निवासी मॉनिटरों का एक छोटा समूह शिकायतें और फ़ोटो देखता है। वे संपर्क जानकारी कभी नहीं देखते। उसे केवल एसोसिएशन का डेटा संपर्क व्यक्ति देखता है। डेटा एसोसिएशन के खाते में Google Drive और Google Sheets में रखा जाता है। हम इसे कभी नहीं बेचते और न ही WhatsApp ग्रुप में डालते हैं।",
+  n_long_h: "हम इसे कितने समय तक रखते हैं", n_long: "टिकट बंद होने के {d} दिन बाद फ़ोटो, विवरण और संपर्क जानकारी मिटा दी जाती है। बिना नाम की गिनती रखी जाती है।",
+  n_rights_h: "आपके अधिकार", n_rights: "आप कभी भी अपनी सहमति वापस ले सकते हैं। आप अपनी शिकायत देखने, सुधारने या मिटाने के लिए भी कह सकते हैं। अपने टिकट नंबर के साथ {email} पर ईमेल करें। सहमति वापस लेना उतना ही आसान है जितना देना। आप अपनी ओर से काम करने के लिए किसी को नामित कर सकते हैं। अगर आप हमारे जवाब से संतुष्ट नहीं हैं, तो भारतीय डेटा संरक्षण बोर्ड में शिकायत कर सकते हैं।",
+  n_others_h: "दूसरे लोगों के बारे में", n_others: "समस्या बताइए, व्यक्ति के बारे में नहीं। चेहरों, बच्चों या किसी के घर के अंदर की फ़ोटो अपलोड न करें। जिन शिकायतों में लोगों के नाम लिए गए हों या उन्हें शर्मिंदा किया गया हो, उन्हें हम बदल देंगे या हटा देंगे।",
+  n_lang: "यह सूचना अंग्रेज़ी में भी उपलब्ध है। अनुवाद में कोई बात स्पष्ट न हो, तो अंग्रेज़ी संस्करण मान्य होगा।",
+  CAT: ["लिफ़्ट फँसी है या बंद है", "लिफ़्ट का अलार्म या इंटरकॉम काम नहीं करता", "आग, धुआँ या जलने की गंध", "अग्निशमन उपकरण गायब या खराब", "फ़ायर एग्ज़िट या सीढ़ी बंद", "गैस रिसाव की गंध", "बिजली का खतरा (खुले तार, चिंगारी, करंट)", "ढाँचे का खतरा (दरारें, गिरता प्लास्टर, टूटी रेलिंग)", "पानी भराव या बिजली के पास पानी", "सुरक्षा या संदिग्ध व्यक्ति", "बच्चों के लिए खतरा (खुला शाफ़्ट, असुरक्षित खेल का मैदान)", "अन्य सुरक्षा खतरा"],
+  AREA: ["टावर", "पार्किंग", "क्लबहाउस", "गेट और ड्राइववे", "बगीचा या खेल का मैदान", "अन्य कॉमन एरिया"],
+  OUT: ["कोई जवाब नहीं", "स्वीकार किया पर ठीक नहीं हुआ", "बिना ठीक किए बंद कर दिया", "ठीक हो गया"],
+},
+kn: {
+  _name: "ಕನ್ನಡ",
+  title: "ಸುರಕ್ಷತಾ ಸಮಸ್ಯೆ ವರದಿ ಮಾಡಿ",
+  start: "ಸಮಸ್ಯೆ ವರದಿ ಮಾಡಿ",
+  next: "ಮುಂದೆ",
+  back: "ಹಿಂದೆ",
+  wa_share: "ಈ ವರದಿಯನ್ನು ಸುರಕ್ಷತಾ ಗುಂಪಿಗೆ ಕಳುಹಿಸಿ",
+  wa_pick: "ವರದಿ ಟೈಪ್ ಆಗಿರುವಂತೆ WhatsApp ತೆರೆಯುತ್ತದೆ. ಸುರಕ್ಷತಾ ಗುಂಪನ್ನು ಆಯ್ಕೆಮಾಡಿ ಕಳುಹಿಸಿ ಒತ್ತಿ. ಅಲ್ಲಿ ನಿಮ್ಮ ಹೆಸರು ಮತ್ತು ಸಂಖ್ಯೆ ಕಾಣುತ್ತದೆ.",
+  n_wa: "ನೀವೇ ನಿಮ್ಮ ವರದಿಯನ್ನು ಸುರಕ್ಷತಾ WhatsApp ಗುಂಪಿನಲ್ಲಿ ಹಂಚಿಕೊಂಡರೆ, ಗುಂಪಿನ ಎಲ್ಲರೂ ಅದನ್ನು ನಿಮ್ಮ ಹೆಸರು ಮತ್ತು ಸಂಖ್ಯೆಯೊಂದಿಗೆ ನೋಡುತ್ತಾರೆ. ಹಂಚಿಕೊಳ್ಳುವುದು ನಿಮ್ಮ ಆಯ್ಕೆ.",
+  lift_call: "ಲಿಫ್ಟ್ ಸಿಲುಕಿದೆಯೇ? Johnson Lifts ಗೆ ಕರೆ ಮಾಡಿ",
+  lift_hint: "ಬ್ರೇಕ್‌ಡೌನ್ ಸಹಾಯವಾಣಿ, Johnson Care. ಲಿಫ್ಟ್ ಒಳಗಿನ ಫಲಕದಲ್ಲಿರುವ ಜಾಬ್ ಸಂಖ್ಯೆಯನ್ನು ತಿಳಿಸಿ.",
+  urgent_t: "ಇದು ತುರ್ತು ಎಂದು ತೋರುತ್ತದೆ. ಮೊದಲು ಸಹಾಯ ಪಡೆಯಿರಿ.",
+  urgent_b: "ಈಗಲೇ ಕರೆ ಮಾಡಿ ಅಥವಾ ಸುರಕ್ಷತಾ ಗುಂಪಿಗೆ ತಿಳಿಸಿ. ನಂತರ ಚಿಕ್ಕ ವರದಿ ಕಳುಹಿಸಿ. ಉಳಿದ ಪ್ರಶ್ನೆಗಳು ಕಾಯಬಹುದು.",
+  more: "ಹೆಚ್ಚಿನ ವಿವರಗಳು (ಐಚ್ಛಿಕ)",
+  emerg: "ಈಗಲೇ ತುರ್ತು ಪರಿಸ್ಥಿತಿಯೇ? ಮೊದಲು 112 ಗೆ ಕರೆ ಮಾಡಿ. ಅಗ್ನಿಶಾಮಕ 101. ಆಂಬ್ಯುಲೆನ್ಸ್ 108.",
+  wa_btn: "ಸುರಕ್ಷತಾ WhatsApp ಗುಂಪಿಗೆ ತಿಳಿಸಿ",
+  wa_note: "ಗುಂಪಿನಲ್ಲಿರುವ ಎಲ್ಲರಿಗೂ ನಿಮ್ಮ ಹೆಸರು ಮತ್ತು ಸಂಖ್ಯೆ ಕಾಣುತ್ತದೆ.",
+  wa_after: "ತುರ್ತು ಇದ್ದರೆ, ಈಗಲೇ ಸುರಕ್ಷತಾ ಗುಂಪಿಗೂ ತಿಳಿಸಿ.",
+  q_voice: "ಧ್ವನಿ ಸಂದೇಶ",
+  voice_hint: "(ಐಚ್ಛಿಕ, ಗರಿಷ್ಠ 2 ನಿಮಿಷ. ನಿಮ್ಮ ಧ್ವನಿಯಿಂದ ನಿಮ್ಮನ್ನು ಗುರುತಿಸಬಹುದು. ಟೈಪ್ ಮಾಡಿದರೆ ನೀವು ಅನಾಮಧೇಯರಾಗಿರುತ್ತೀರಿ)",
+  rec: "ರೆಕಾರ್ಡ್ ಮಾಡಿ",
+  stop: "ನಿಲ್ಲಿಸಿ",
+  del: "ಅಳಿಸಿ",
+  e_mic: "ಮೈಕ್ರೋಫೋನ್ ಬಳಸಲು ಆಗಲಿಲ್ಲ. ದಯವಿಟ್ಟು ಟೈಪ್ ಮಾಡಿ.",
+  n_voice: "ನೀವು ಧ್ವನಿ ಸಂದೇಶ ರೆಕಾರ್ಡ್ ಮಾಡಿದರೆ, ಅದನ್ನೂ ಇಡುತ್ತೇವೆ. ಅದನ್ನು ಫೋಟೋಗಳ ಜೊತೆಗೇ ಅಳಿಸಲಾಗುತ್ತದೆ.",
+  safe: "ನಾವು ನಿಮ್ಮ ಹೆಸರು ಕೇಳುವುದಿಲ್ಲ. ಸಂಪರ್ಕ ವಿವರಗಳು ಐಚ್ಛಿಕ. ಅವುಗಳನ್ನು ಡೇಟಾ ಸಂಪರ್ಕ ವ್ಯಕ್ತಿ ಮಾತ್ರ ನೋಡುತ್ತಾರೆ. ನೀವು ವರದಿಯನ್ನು WhatsApp ನಲ್ಲಿ ಹಂಚಿಕೊಂಡರೆ, ಗುಂಪಿಗೆ ನಿಮ್ಮ ಹೆಸರು ಮತ್ತು ಸಂಖ್ಯೆ ಕಾಣುತ್ತದೆ.",
+  childT: "ಮಕ್ಕಳು ಕೆಲಸ ಮಾಡುತ್ತಿದ್ದಾರೆಯೇ ಅಥವಾ ಅಪಾಯದಲ್ಲಿದ್ದಾರೆಯೇ?",
+  childB: "ಚೈಲ್ಡ್‌ಲೈನ್ 1098 ಅಥವಾ ಪೊಲೀಸ್ 112 ಗೆ ಕರೆ ಮಾಡಿ. ನೀವು ಅನಾಮಧೇಯರಾಗಿರಬಹುದು. ದಯವಿಟ್ಟು ಮಕ್ಕಳ ಫೋಟೋ ತೆಗೆಯಬೇಡಿ ಅಥವಾ ಇಲ್ಲಿ ಅಪ್‌ಲೋಡ್ ಮಾಡಬೇಡಿ.",
+  q_category: "ಸಮಸ್ಯೆ ಏನು?", pick_category: "ವರ್ಗವನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+  q_tower: "ಎಲ್ಲಿ?", pick_tower: "ಟವರ್ ಅಥವಾ ಸ್ಥಳವನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+  q_spot: "ನಿಖರ ಸ್ಥಳ", spot_hint: "(ಐಚ್ಛಿಕ, ಉದಾ. 12ನೇ ಮಹಡಿ ಲಿಫ್ಟ್ ಲಾಬಿ, ಬೇಸ್‌ಮೆಂಟ್ 2 ಕಂಬ 40)",
+  q_when: "ಇದು ಯಾವಾಗ ಆಯಿತು?", optional: "(ಐಚ್ಛಿಕ)",
+  q_desc: "ಏನಾಯಿತು?", desc_ph: "ವ್ಯಕ್ತಿಯನ್ನಲ್ಲ, ಸಮಸ್ಯೆಯನ್ನು ವಿವರಿಸಿ. ಇದು ಎಷ್ಟು ಬಾರಿ ಆಗುತ್ತದೆ ಎಂದು ತಿಳಿಸಿ.",
+  q_photos: "ಫೋಟೋಗಳು", photo_hint: "(ಐಚ್ಛಿಕ, ಗರಿಷ್ಠ {n}. ಅಪ್‌ಲೋಡ್ ಮಾಡುವ ಮೊದಲು ಸ್ಥಳದ ಮಾಹಿತಿಯನ್ನು ತೆಗೆದುಹಾಕಲಾಗುತ್ತದೆ)",
+  q_mygate: "ನೀವು ಇದನ್ನು ಈಗಾಗಲೇ MyGate ನಲ್ಲಿ ದಾಖಲಿಸಿದ್ದೀರಾ?", yes: "ಹೌದು", no: "ಇಲ್ಲ",
+  q_mygate_ref: "MyGate ಟಿಕೆಟ್ ಸಂಖ್ಯೆ", q_mygate_out: "MyGate ನಲ್ಲಿ ಏನಾಯಿತು?", pick_outcome: "ಒಂದನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+  q_contact: "ಉತ್ತರಕ್ಕಾಗಿ ಫೋನ್ ಅಥವಾ ಇಮೇಲ್", contact_hint: "(ಐಚ್ಛಿಕ, ಡೇಟಾ ಸಂಪರ್ಕ ವ್ಯಕ್ತಿ ಮಾತ್ರ ಇದನ್ನು ನೋಡುತ್ತಾರೆ)",
+  notice_summary: "ಗೌಪ್ಯತಾ ಸೂಚನೆ (ದಯವಿಟ್ಟು ಓದಿ)",
+  consent: "ನಾನು ಗೌಪ್ಯತಾ ಸೂಚನೆಯನ್ನು ಓದಿದ್ದೇನೆ. ಸೂಚನೆಯಲ್ಲಿ ತಿಳಿಸಿದ ಉದ್ದೇಶಗಳಿಗಾಗಿ ಸಂಘವು ಈ ವರದಿ ಮತ್ತು ಅದರ ಫೋಟೋಗಳನ್ನು ಬಳಸಲು ನಾನು ಒಪ್ಪುತ್ತೇನೆ.",
+  send: "ವರದಿ ಕಳುಹಿಸಿ", sending: "ಕಳುಹಿಸಲಾಗುತ್ತಿದೆ...",
+  done1: "ಧನ್ಯವಾದಗಳು. ನಿಮ್ಮ ವರದಿ ದಾಖಲಾಗಿದೆ.",
+  done2: "ಈ ಟಿಕೆಟ್ ಸಂಖ್ಯೆಯನ್ನು ಇಟ್ಟುಕೊಳ್ಳಿ. ಮುಂದಿನ ವಿಚಾರಣೆ, ತಿದ್ದುಪಡಿ ಅಥವಾ ವರದಿ ಅಳಿಸಲು ಇದನ್ನು ತಿಳಿಸಿ.",
+  e_place: "ದಯವಿಟ್ಟು ವರ್ಗ ಮತ್ತು ಸ್ಥಳವನ್ನು ಆಯ್ಕೆಮಾಡಿ.", e_desc: "ದಯವಿಟ್ಟು ಸಮಸ್ಯೆಯನ್ನು ಇನ್ನಷ್ಟು ವಿವರವಾಗಿ ಬರೆಯಿರಿ ಅಥವಾ ಧ್ವನಿ ಸಂದೇಶ ರೆಕಾರ್ಡ್ ಮಾಡಿ.",
+  e_consent: "ದಯವಿಟ್ಟು ಗೌಪ್ಯತಾ ಸೂಚನೆಯನ್ನು ಓದಿ ಮತ್ತು ಬಾಕ್ಸ್ ಟಿಕ್ ಮಾಡಿ.", e_mygate: "ದಯವಿಟ್ಟು MyGate ಪ್ರಶ್ನೆಗೆ ಉತ್ತರಿಸಿ.",
+  e_photo: "ಈ ಫೋಟೋವನ್ನು ಓದಲು ಆಗಲಿಲ್ಲ. ದಯವಿಟ್ಟು ಬೇರೆ ಫೋಟೋ ಪ್ರಯತ್ನಿಸಿ.", e_photos_max: "ಮೊದಲ {n} ಫೋಟೋಗಳನ್ನು ಮಾತ್ರ ಇರಿಸಲಾಗಿದೆ.",
+  e_long: "ಒಂದು ಉತ್ತರ ತುಂಬಾ ಉದ್ದವಾಗಿದೆ.", e_rate: "ಕಳೆದ ಒಂದು ಗಂಟೆಯಲ್ಲಿ ತುಂಬಾ ವರದಿಗಳು ಬಂದಿವೆ. ದಯವಿಟ್ಟು ಸ್ವಲ್ಪ ಸಮಯದ ನಂತರ ಪ್ರಯತ್ನಿಸಿ.",
+  e_generic: "ಏನೋ ತಪ್ಪಾಗಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+  n_version: "ಆವೃತ್ತಿ {v}.",
+  n_who_h: "ನಾವು ಯಾರು", n_who: "ಈ ಫಾರ್ಮ್ ಅನ್ನು {society} ನಡೆಸುತ್ತದೆ. ಡಿಜಿಟಲ್ ವೈಯಕ್ತಿಕ ಡೇಟಾ ಸಂರಕ್ಷಣಾ ಕಾಯ್ದೆ 2023 ರ ಅಡಿಯಲ್ಲಿ ಸಂಘವು ಡೇಟಾ ಫಿಡ್ಯೂಷಿಯರಿ ಆಗಿದೆ. ಸಂಪರ್ಕ: {email}.",
+  n_what_h: "ನಾವು ಏನನ್ನು ಸಂಗ್ರಹಿಸುತ್ತೇವೆ", n_what: "ಸಮಸ್ಯೆಯ ಪ್ರಕಾರ, ಸ್ಥಳ ಮತ್ತು ಸಮಯ. ನಿಮ್ಮ ವಿವರಣೆ. ಗರಿಷ್ಠ {n} ಫೋಟೋಗಳು. ನೀವು ಇದನ್ನು MyGate ನಲ್ಲಿ ದಾಖಲಿಸಿದ್ದೀರಾ ಎಂಬುದು. ನೀವು ನೀಡಲು ಬಯಸಿದರೆ ಮಾತ್ರ ಫೋನ್ ಸಂಖ್ಯೆ ಅಥವಾ ಇಮೇಲ್. ನಾವು ನಿಮ್ಮ ಹೆಸರು ಕೇಳುವುದಿಲ್ಲ. ಅಪ್‌ಲೋಡ್ ಮಾಡುವ ಮೊದಲು ಫೋಟೋಗಳನ್ನು ನಿಮ್ಮ ಫೋನ್‌ನಲ್ಲೇ ಮರು ಉಳಿಸಲಾಗುತ್ತದೆ. ಇದರಿಂದ ಕ್ಯಾಮೆರಾ ಸೇರಿಸುವ ಸ್ಥಳದ ಮಾಹಿತಿ ತೆಗೆದುಹೋಗುತ್ತದೆ.",
+  n_why_h: "ಏಕೆ", n_why: "ಸಮಸ್ಯೆಗಳನ್ನು ದಾಖಲಿಸಲು, ಅವು ಸರಿಯಾಗುವವರೆಗೆ ಅನುಸರಿಸಲು ಮತ್ತು ನಿವಾಸಿಗಳೊಂದಿಗೆ ಹೆಸರಿಲ್ಲದ ಒಟ್ಟು ಅಂಕಿಅಂಶಗಳನ್ನು ಹಂಚಿಕೊಳ್ಳಲು. ನಿಮ್ಮ ಡೇಟಾವನ್ನು ಬೇರೆ ಯಾವುದಕ್ಕೂ ಬಳಸುವುದಿಲ್ಲ.",
+  n_sees_h: "ಇದನ್ನು ಯಾರು ನೋಡುತ್ತಾರೆ", n_sees: "ಸಂಘವು ನೇಮಿಸಿದ ನಿವಾಸಿ ಮೇಲ್ವಿಚಾರಕರ ಸಣ್ಣ ತಂಡವು ವರದಿಗಳು ಮತ್ತು ಫೋಟೋಗಳನ್ನು ನೋಡುತ್ತದೆ. ಅವರು ಸಂಪರ್ಕ ವಿವರಗಳನ್ನು ಎಂದಿಗೂ ನೋಡುವುದಿಲ್ಲ. ಅವುಗಳನ್ನು ಸಂಘದ ಡೇಟಾ ಸಂಪರ್ಕ ವ್ಯಕ್ತಿ ಮಾತ್ರ ನೋಡುತ್ತಾರೆ. ಡೇಟಾವನ್ನು ಸಂಘದ ಖಾತೆಯಲ್ಲಿ Google Drive ಮತ್ತು Google Sheets ನಲ್ಲಿ ಇರಿಸಲಾಗುತ್ತದೆ. ನಾವು ಇದನ್ನು ಎಂದಿಗೂ ಮಾರಾಟ ಮಾಡುವುದಿಲ್ಲ ಅಥವಾ WhatsApp ಗುಂಪುಗಳಲ್ಲಿ ಹಾಕುವುದಿಲ್ಲ.",
+  n_long_h: "ನಾವು ಇದನ್ನು ಎಷ್ಟು ಕಾಲ ಇಡುತ್ತೇವೆ", n_long: "ಟಿಕೆಟ್ ಮುಚ್ಚಿದ {d} ದಿನಗಳ ನಂತರ ಫೋಟೋಗಳು, ವಿವರಣೆಗಳು ಮತ್ತು ಸಂಪರ್ಕ ವಿವರಗಳನ್ನು ಅಳಿಸಲಾಗುತ್ತದೆ. ಹೆಸರಿಲ್ಲದ ಎಣಿಕೆಗಳನ್ನು ಇಡಲಾಗುತ್ತದೆ.",
+  n_rights_h: "ನಿಮ್ಮ ಹಕ್ಕುಗಳು", n_rights: "ನೀವು ಯಾವಾಗ ಬೇಕಾದರೂ ನಿಮ್ಮ ಒಪ್ಪಿಗೆಯನ್ನು ಹಿಂಪಡೆಯಬಹುದು. ನಿಮ್ಮ ವರದಿಯನ್ನು ನೋಡಲು, ತಿದ್ದಲು ಅಥವಾ ಅಳಿಸಲು ಸಹ ಕೇಳಬಹುದು. ನಿಮ್ಮ ಟಿಕೆಟ್ ಸಂಖ್ಯೆಯೊಂದಿಗೆ {email} ಗೆ ಇಮೇಲ್ ಮಾಡಿ. ಒಪ್ಪಿಗೆ ಹಿಂಪಡೆಯುವುದು ನೀಡಿದಷ್ಟೇ ಸುಲಭ. ನಿಮ್ಮ ಪರವಾಗಿ ಕಾರ್ಯನಿರ್ವಹಿಸಲು ನೀವು ಯಾರನ್ನಾದರೂ ನಾಮನಿರ್ದೇಶನ ಮಾಡಬಹುದು. ನಮ್ಮ ಉತ್ತರದಿಂದ ನಿಮಗೆ ತೃಪ್ತಿ ಇಲ್ಲದಿದ್ದರೆ, ಭಾರತದ ಡೇಟಾ ಸಂರಕ್ಷಣಾ ಮಂಡಳಿಗೆ ದೂರು ನೀಡಬಹುದು.",
+  n_others_h: "ಇತರರ ಬಗ್ಗೆ", n_others: "ವ್ಯಕ್ತಿಯನ್ನಲ್ಲ, ಸಮಸ್ಯೆಯನ್ನು ವಿವರಿಸಿ. ಮುಖಗಳು, ಮಕ್ಕಳು ಅಥವಾ ಯಾರದೇ ಮನೆಯ ಒಳಗಿನ ಫೋಟೋಗಳನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಬೇಡಿ. ಜನರ ಹೆಸರು ಹೇಳುವ ಅಥವಾ ಅವಮಾನಿಸುವ ವರದಿಗಳನ್ನು ನಾವು ತಿದ್ದುತ್ತೇವೆ ಅಥವಾ ತೆಗೆದುಹಾಕುತ್ತೇವೆ.",
+  n_lang: "ಈ ಸೂಚನೆ ಇಂಗ್ಲಿಷ್‌ನಲ್ಲೂ ಲಭ್ಯವಿದೆ. ಅನುವಾದದಲ್ಲಿ ಏನಾದರೂ ಸ್ಪಷ್ಟವಾಗಿಲ್ಲದಿದ್ದರೆ, ಇಂಗ್ಲಿಷ್ ಆವೃತ್ತಿಯೇ ಅನ್ವಯಿಸುತ್ತದೆ.",
+  CAT: ["ಲಿಫ್ಟ್ ಸಿಲುಕಿದೆ ಅಥವಾ ಕೆಲಸ ಮಾಡುತ್ತಿಲ್ಲ", "ಲಿಫ್ಟ್ ಅಲಾರ್ಮ್ ಅಥವಾ ಇಂಟರ್‌ಕಾಮ್ ಕೆಲಸ ಮಾಡುತ್ತಿಲ್ಲ", "ಬೆಂಕಿ, ಹೊಗೆ ಅಥವಾ ಸುಟ್ಟ ವಾಸನೆ", "ಅಗ್ನಿಶಾಮಕ ಉಪಕರಣ ಇಲ್ಲ ಅಥವಾ ಕೆಟ್ಟಿದೆ", "ಫೈರ್ ಎಕ್ಸಿಟ್ ಅಥವಾ ಮೆಟ್ಟಿಲು ಮುಚ್ಚಿದೆ", "ಗ್ಯಾಸ್ ಸೋರಿಕೆಯ ವಾಸನೆ", "ವಿದ್ಯುತ್ ಅಪಾಯ (ತೆರೆದ ತಂತಿಗಳು, ಕಿಡಿಗಳು, ಶಾಕ್)", "ರಚನಾತ್ಮಕ ಅಪಾಯ (ಬಿರುಕುಗಳು, ಉದುರುವ ಪ್ಲಾಸ್ಟರ್, ಮುರಿದ ರೇಲಿಂಗ್)", "ನೀರು ನಿಲ್ಲುವುದು ಅಥವಾ ವಿದ್ಯುತ್ ಬಳಿ ನೀರು", "ಭದ್ರತೆ ಅಥವಾ ಅನುಮಾನಾಸ್ಪದ ವ್ಯಕ್ತಿ", "ಮಕ್ಕಳಿಗೆ ಅಪಾಯ (ತೆರೆದ ಶಾಫ್ಟ್, ಅಸುರಕ್ಷಿತ ಆಟದ ಸ್ಥಳ)", "ಇತರ ಸುರಕ್ಷತಾ ಅಪಾಯ"],
+  AREA: ["ಟವರ್", "ಪಾರ್ಕಿಂಗ್", "ಕ್ಲಬ್‌ಹೌಸ್", "ಗೇಟ್ ಮತ್ತು ಡ್ರೈವ್‌ವೇ", "ಉದ್ಯಾನ ಅಥವಾ ಆಟದ ಸ್ಥಳ", "ಇತರ ಸಾಮಾನ್ಯ ಪ್ರದೇಶ"],
+  OUT: ["ಯಾವುದೇ ಉತ್ತರ ಇಲ್ಲ", "ಸ್ವೀಕರಿಸಿದರು ಆದರೆ ಸರಿಪಡಿಸಿಲ್ಲ", "ಸರಿಪಡಿಸದೆ ಮುಚ್ಚಲಾಗಿದೆ", "ಸರಿಪಡಿಸಲಾಗಿದೆ"],
+},
+bn: {
+  _name: "বাংলা",
+  title: "নিরাপত্তা সমস্যা জানান",
+  start: "সমস্যা জানান",
+  next: "পরবর্তী",
+  back: "পিছনে",
+  wa_share: "এই অভিযোগ নিরাপত্তা গ্রুপে পাঠান",
+  wa_pick: "অভিযোগটি লেখা অবস্থায় WhatsApp খুলবে। নিরাপত্তা গ্রুপ বেছে নিয়ে পাঠান চাপুন। সেখানে আপনার নাম ও নম্বর দেখা যাবে।",
+  n_wa: "আপনি নিজে অভিযোগটি নিরাপত্তা WhatsApp গ্রুপে শেয়ার করলে গ্রুপের সবাই তা আপনার নাম ও নম্বর সহ দেখবেন। শেয়ার করা আপনার ইচ্ছা।",
+  lift_call: "লিফট আটকে গেছে? Johnson Lifts-এ ফোন করুন",
+  lift_hint: "ব্রেকডাউন হেল্পলাইন, Johnson Care। লিফটের ভিতরের প্লেটে লেখা জব নম্বর জানান।",
+  urgent_t: "এটি জরুরি মনে হচ্ছে। আগে সাহায্য নিন।",
+  urgent_b: "এখনই ফোন করুন বা নিরাপত্তা গ্রুপকে জানান। তারপর একটি ছোট অভিযোগ পাঠান। বাকি প্রশ্ন পরে।",
+  more: "আরও বিবরণ (ঐচ্ছিক)",
+  emerg: "এখনই জরুরি অবস্থা? আগে 112-এ ফোন করুন। দমকল 101। অ্যাম্বুলেন্স 108।",
+  wa_btn: "নিরাপত্তা WhatsApp গ্রুপকে জানান",
+  wa_note: "গ্রুপের সবাই আপনার নাম ও নম্বর দেখতে পাবেন।",
+  wa_after: "জরুরি হলে এখনই নিরাপত্তা গ্রুপকেও জানান।",
+  q_voice: "ভয়েস নোট",
+  voice_hint: "(ঐচ্ছিক, সর্বোচ্চ 2 মিনিট। আপনার কণ্ঠস্বর থেকে আপনাকে চেনা যেতে পারে। লিখলে আপনি বেনামী থাকবেন)",
+  rec: "রেকর্ড করুন",
+  stop: "থামান",
+  del: "মুছুন",
+  e_mic: "মাইক্রোফোন ব্যবহার করা যায়নি। দয়া করে লিখে জানান।",
+  n_voice: "আপনি ভয়েস নোট রেকর্ড করলে আমরা সেটিও রাখি। এটি ছবির সঙ্গেই মুছে ফেলা হয়।",
+  safe: "আমরা আপনার নাম জিজ্ঞেস করি না। যোগাযোগের তথ্য দেওয়া ঐচ্ছিক। শুধু ডেটা যোগাযোগ ব্যক্তি তা দেখেন। আপনি অভিযোগটি WhatsApp-এ শেয়ার করলে গ্রুপ আপনার নাম ও নম্বর দেখতে পাবে।",
+  childT: "শিশুরা কাজ করছে বা বিপদে আছে?",
+  childB: "চাইল্ডলাইন 1098 বা পুলিশ 112-এ ফোন করুন। আপনি নাম গোপন রাখতে পারেন। দয়া করে শিশুদের ছবি তুলবেন না বা এখানে আপলোড করবেন না।",
+  q_category: "সমস্যাটি কী?", pick_category: "একটি বিভাগ বেছে নিন",
+  q_tower: "কোথায়?", pick_tower: "টাওয়ার বা জায়গা বেছে নিন",
+  q_spot: "সঠিক জায়গা", spot_hint: "(ঐচ্ছিক, যেমন 12 তলার লিফট লবি, বেসমেন্ট 2 পিলার 40)",
+  q_when: "কখন ঘটেছে?", optional: "(ঐচ্ছিক)",
+  q_desc: "কী হয়েছে?", desc_ph: "মানুষ নয়, সমস্যাটি বর্ণনা করুন। কত ঘন ঘন হয় তাও লিখুন।",
+  q_photos: "ছবি", photo_hint: "(ঐচ্ছিক, সর্বোচ্চ {n}টি। আপলোডের আগে লোকেশনের তথ্য মুছে ফেলা হয়)",
+  q_mygate: "আপনি কি এটি আগে MyGate-এ জানিয়েছেন?", yes: "হ্যাঁ", no: "না",
+  q_mygate_ref: "MyGate টিকিট নম্বর", q_mygate_out: "MyGate-এ কী হয়েছে?", pick_outcome: "একটি বেছে নিন",
+  q_contact: "উত্তরের জন্য ফোন বা ইমেল", contact_hint: "(ঐচ্ছিক, শুধু ডেটা যোগাযোগ ব্যক্তি এটি দেখেন)",
+  notice_summary: "গোপনীয়তা বিজ্ঞপ্তি (দয়া করে পড়ুন)",
+  consent: "আমি গোপনীয়তা বিজ্ঞপ্তি পড়েছি। বিজ্ঞপ্তিতে বলা উদ্দেশ্যে অ্যাসোসিয়েশন এই অভিযোগ ও এর ছবি ব্যবহার করতে পারে, এতে আমি সম্মত।",
+  send: "অভিযোগ পাঠান", sending: "পাঠানো হচ্ছে...",
+  done1: "ধন্যবাদ। আপনার অভিযোগ নথিভুক্ত হয়েছে।",
+  done2: "এই টিকিট নম্বরটি রেখে দিন। পরে খোঁজ নিতে, সংশোধন করতে বা অভিযোগ মুছতে এটি উল্লেখ করুন।",
+  e_place: "দয়া করে বিভাগ ও জায়গা বেছে নিন।", e_desc: "দয়া করে সমস্যাটি আরেকটু বিস্তারিত লিখুন বা ভয়েস নোট রেকর্ড করুন।",
+  e_consent: "দয়া করে গোপনীয়তা বিজ্ঞপ্তি পড়ে বাক্সে টিক দিন।", e_mygate: "দয়া করে MyGate প্রশ্নের উত্তর দিন।",
+  e_photo: "এই ছবিটি পড়া যায়নি। দয়া করে অন্য ছবি দিন।", e_photos_max: "শুধু প্রথম {n}টি ছবি রাখা হয়েছে।",
+  e_long: "একটি উত্তর খুব লম্বা।", e_rate: "গত এক ঘণ্টায় অনেক অভিযোগ এসেছে। দয়া করে কিছুক্ষণ পরে চেষ্টা করুন।",
+  e_generic: "কিছু ভুল হয়েছে। দয়া করে আবার চেষ্টা করুন।",
+  n_version: "সংস্করণ {v}।",
+  n_who_h: "আমরা কারা", n_who: "এই ফর্মটি চালায় {society}। ডিজিটাল ব্যক্তিগত ডেটা সুরক্ষা আইন 2023 অনুযায়ী অ্যাসোসিয়েশনই ডেটা ফিডুশিয়ারি। যোগাযোগ: {email}।",
+  n_what_h: "আমরা কী সংগ্রহ করি", n_what: "সমস্যার ধরন, জায়গা ও সময়। আপনার বিবরণ। সর্বোচ্চ {n}টি ছবি। আপনি এটি MyGate-এ জানিয়েছেন কি না। ফোন নম্বর বা ইমেল, শুধু আপনি দিতে চাইলে। আমরা আপনার নাম জিজ্ঞেস করি না। আপলোডের আগে ছবিগুলি আপনার ফোনেই নতুন করে সেভ করা হয়। এতে ক্যামেরার রাখা লোকেশনের তথ্য মুছে যায়।",
+  n_why_h: "কেন", n_why: "সমস্যা নথিভুক্ত করতে, সমাধান না হওয়া পর্যন্ত খোঁজ রাখতে এবং বাসিন্দাদের সঙ্গে নামহীন মোট হিসাব ভাগ করতে। আপনার ডেটা অন্য কোনো কাজে ব্যবহার হয় না।",
+  n_sees_h: "কে দেখে", n_sees: "অ্যাসোসিয়েশনের নিয়োগ করা বাসিন্দা মনিটরদের একটি ছোট দল অভিযোগ ও ছবি দেখে। তারা যোগাযোগের তথ্য কখনও দেখে না। তা শুধু অ্যাসোসিয়েশনের ডেটা যোগাযোগ ব্যক্তি দেখেন। ডেটা অ্যাসোসিয়েশনের অ্যাকাউন্টে Google Drive ও Google Sheets-এ রাখা হয়। আমরা কখনও তা বিক্রি করি না বা WhatsApp গ্রুপে দিই না।",
+  n_long_h: "কতদিন রাখি", n_long: "টিকিট বন্ধ হওয়ার {d} দিন পরে ছবি, বিবরণ ও যোগাযোগের তথ্য মুছে ফেলা হয়। নামহীন গণনা রাখা হয়।",
+  n_rights_h: "আপনার অধিকার", n_rights: "আপনি যেকোনো সময় সম্মতি প্রত্যাহার করতে পারেন। আপনার অভিযোগ দেখতে, সংশোধন করতে বা মুছতেও বলতে পারেন। টিকিট নম্বর সহ {email}-এ ইমেল করুন। সম্মতি প্রত্যাহার করা দেওয়ার মতোই সহজ। আপনার হয়ে কাজ করার জন্য কাউকে মনোনীত করতে পারেন। আমাদের উত্তরে সন্তুষ্ট না হলে ভারতের ডেটা সুরক্ষা বোর্ডে অভিযোগ করতে পারেন।",
+  n_others_h: "অন্যদের সম্পর্কে", n_others: "মানুষ নয়, সমস্যাটি বর্ণনা করুন। মুখ, শিশু বা কারও বাড়ির ভিতরের ছবি আপলোড করবেন না। যে অভিযোগে কারও নাম নেওয়া হয় বা কাউকে অপমান করা হয়, আমরা তা সম্পাদনা করব বা সরিয়ে দেব।",
+  n_lang: "এই বিজ্ঞপ্তি ইংরেজিতেও পাওয়া যায়। অনুবাদে কিছু অস্পষ্ট থাকলে ইংরেজি সংস্করণই প্রযোজ্য।",
+  CAT: ["লিফট আটকে গেছে বা চলছে না", "লিফটের অ্যালার্ম বা ইন্টারকম কাজ করছে না", "আগুন, ধোঁয়া বা পোড়া গন্ধ", "অগ্নিনির্বাপক সরঞ্জাম নেই বা কাজ করছে না", "ফায়ার এক্সিট বা সিঁড়ি আটকানো", "গ্যাস লিকের গন্ধ", "বৈদ্যুতিক বিপদ (খোলা তার, স্পার্ক, শক)", "কাঠামোগত বিপদ (ফাটল, খসে পড়া প্লাস্টার, ভাঙা রেলিং)", "জল জমা বা বিদ্যুতের কাছে জল", "নিরাপত্তা বা সন্দেহজনক ব্যক্তি", "শিশুদের জন্য বিপদ (খোলা শ্যাফট, অনিরাপদ খেলার জায়গা)", "অন্য নিরাপত্তা ঝুঁকি"],
+  AREA: ["টাওয়ার", "পার্কিং", "ক্লাবহাউস", "গেট ও ড্রাইভওয়ে", "বাগান বা খেলার জায়গা", "অন্য কমন এরিয়া"],
+  OUT: ["কোনো উত্তর নেই", "গ্রহণ করেছে কিন্তু ঠিক করেনি", "ঠিক না করেই বন্ধ করেছে", "ঠিক হয়ে গেছে"],
+},
+or: {
+  _name: "ଓଡ଼ିଆ",
+  title: "ସୁରକ୍ଷା ସମସ୍ୟା ଜଣାନ୍ତୁ",
+  start: "ସମସ୍ୟା ଜଣାନ୍ତୁ",
+  next: "ଆଗକୁ",
+  back: "ପଛକୁ",
+  wa_share: "ଏହି ଅଭିଯୋଗ ସୁରକ୍ଷା ଗ୍ରୁପକୁ ପଠାନ୍ତୁ",
+  wa_pick: "ଅଭିଯୋଗ ଲେଖା ହୋଇଥିବା ଅବସ୍ଥାରେ WhatsApp ଖୋଲିବ। ସୁରକ୍ଷା ଗ୍ରୁପ ବାଛି ପଠାନ୍ତୁ ଦବାନ୍ତୁ। ସେଠାରେ ଆପଣଙ୍କ ନାମ ଓ ନମ୍ବର ଦେଖାଯିବ।",
+  n_wa: "ଆପଣ ନିଜେ ଅଭିଯୋଗକୁ ସୁରକ୍ଷା WhatsApp ଗ୍ରୁପରେ ସେୟାର କଲେ ଗ୍ରୁପର ସମସ୍ତେ ତାହା ଆପଣଙ୍କ ନାମ ଓ ନମ୍ବର ସହିତ ଦେଖିବେ। ସେୟାର କରିବା ଆପଣଙ୍କ ଇଚ୍ଛା।",
+  lift_call: "ଲିଫ୍ଟ ଅଟକିଛି? Johnson Lifts କୁ ଫୋନ କରନ୍ତୁ",
+  lift_hint: "ବ୍ରେକଡାଉନ ହେଲ୍ପଲାଇନ, Johnson Care। ଲିଫ୍ଟ ଭିତରର ପ୍ଲେଟରେ ଥିବା ଜବ ନମ୍ବର କୁହନ୍ତୁ।",
+  urgent_t: "ଏହା ଜରୁରୀ ଲାଗୁଛି। ପ୍ରଥମେ ସାହାଯ୍ୟ ନିଅନ୍ତୁ।",
+  urgent_b: "ବର୍ତ୍ତମାନ ଫୋନ କରନ୍ତୁ କିମ୍ବା ସୁରକ୍ଷା ଗ୍ରୁପକୁ ଜଣାନ୍ତୁ। ତା'ପରେ ଛୋଟ ଅଭିଯୋଗ ପଠାନ୍ତୁ। ବାକି ପ୍ରଶ୍ନ ପରେ।",
+  more: "ଅଧିକ ବିବରଣୀ (ଇଚ୍ଛାଧୀନ)",
+  emerg: "ବର୍ତ୍ତମାନ ଜରୁରୀ ଅବସ୍ଥା? ପ୍ରଥମେ 112 କୁ ଫୋନ କରନ୍ତୁ। ଅଗ୍ନିଶମ 101। ଆମ୍ବୁଲାନ୍ସ 108।",
+  wa_btn: "ସୁରକ୍ଷା WhatsApp ଗ୍ରୁପକୁ ଜଣାନ୍ତୁ",
+  wa_note: "ଗ୍ରୁପରେ ସମସ୍ତେ ଆପଣଙ୍କ ନାମ ଓ ନମ୍ବର ଦେଖିପାରିବେ।",
+  wa_after: "ଜରୁରୀ ହେଲେ ବର୍ତ୍ତମାନ ସୁରକ୍ଷା ଗ୍ରୁପକୁ ମଧ୍ୟ ଜଣାନ୍ତୁ।",
+  q_voice: "ଭଏସ ନୋଟ",
+  voice_hint: "(ଇଚ୍ଛାଧୀନ, ସର୍ବାଧିକ 2 ମିନିଟ। ଆପଣଙ୍କ ସ୍ୱରରୁ ଆପଣଙ୍କୁ ଚିହ୍ନାଯାଇପାରେ। ଲେଖିଲେ ଆପଣ ଅଜ୍ଞାତ ରହିବେ)",
+  rec: "ରେକର୍ଡ କରନ୍ତୁ",
+  stop: "ବନ୍ଦ କରନ୍ତୁ",
+  del: "ହଟାନ୍ତୁ",
+  e_mic: "ମାଇକ୍ରୋଫୋନ ବ୍ୟବହାର କରାଯାଇପାରିଲା ନାହିଁ। ଦୟାକରି ଲେଖି ଜଣାନ୍ତୁ।",
+  n_voice: "ଆପଣ ଭଏସ ନୋଟ ରେକର୍ଡ କଲେ ଆମେ ତାହା ମଧ୍ୟ ରଖୁ। ଏହା ଫଟୋ ସହିତ ଲିଭାଇ ଦିଆଯାଏ।",
+  safe: "ଆମେ ଆପଣଙ୍କ ନାମ ପଚାରୁନାହିଁ। ଯୋଗାଯୋଗ ବିବରଣୀ ଇଚ୍ଛାଧୀନ। କେବଳ ଡାଟା ଯୋଗାଯୋଗ ବ୍ୟକ୍ତି ତାହା ଦେଖନ୍ତି। ଆପଣ ଅଭିଯୋଗ WhatsApp ରେ ସେୟାର କଲେ ଗ୍ରୁପ ଆପଣଙ୍କ ନାମ ଓ ନମ୍ବର ଦେଖିବ।",
+  childT: "ପିଲାମାନେ କାମ କରୁଛନ୍ତି କି ବିପଦରେ ଅଛନ୍ତି?",
+  childB: "ଚାଇଲ୍ଡଲାଇନ 1098 କିମ୍ବା ପୋଲିସ 112 କୁ ଫୋନ କରନ୍ତୁ। ଆପଣ ନାମ ଗୋପନ ରଖିପାରିବେ। ଦୟାକରି ପିଲାମାନଙ୍କ ଫଟୋ ନିଅନ୍ତୁ ନାହିଁ କିମ୍ବା ଏଠାରେ ଅପଲୋଡ କରନ୍ତୁ ନାହିଁ।",
+  q_category: "ସମସ୍ୟାଟି କ'ଣ?", pick_category: "ଏକ ବର୍ଗ ବାଛନ୍ତୁ",
+  q_tower: "କେଉଁଠି?", pick_tower: "ଟାୱାର କିମ୍ବା ସ୍ଥାନ ବାଛନ୍ତୁ",
+  q_spot: "ସଠିକ ସ୍ଥାନ", spot_hint: "(ଇଚ୍ଛାଧୀନ, ଯେପରି 12 ମହଲା ଲିଫ୍ଟ ଲବି, ବେସମେଣ୍ଟ 2 ସ୍ତମ୍ଭ 40)",
+  q_when: "ଏହା କେବେ ଘଟିଲା?", optional: "(ଇଚ୍ଛାଧୀନ)",
+  q_desc: "କ'ଣ ହେଲା?", desc_ph: "ବ୍ୟକ୍ତି ନୁହେଁ, ସମସ୍ୟାଟି ବର୍ଣ୍ଣନା କରନ୍ତୁ। ଏହା କେତେ ଥର ହୁଏ ତାହା ମଧ୍ୟ ଲେଖନ୍ତୁ।",
+  q_photos: "ଫଟୋ", photo_hint: "(ଇଚ୍ଛାଧୀନ, ସର୍ବାଧିକ {n}ଟି। ଅପଲୋଡ ପୂର୍ବରୁ ଲୋକେସନ ତଥ୍ୟ ହଟାଇ ଦିଆଯାଏ)",
+  q_mygate: "ଆପଣ ଏହାକୁ ପୂର୍ବରୁ MyGate ରେ ଜଣାଇଥିଲେ କି?", yes: "ହଁ", no: "ନା",
+  q_mygate_ref: "MyGate ଟିକେଟ ନମ୍ବର", q_mygate_out: "MyGate ରେ କ'ଣ ହେଲା?", pick_outcome: "ଗୋଟିଏ ବାଛନ୍ତୁ",
+  q_contact: "ଉତ୍ତର ପାଇଁ ଫୋନ କିମ୍ବା ଇମେଲ", contact_hint: "(ଇଚ୍ଛାଧୀନ, କେବଳ ଡାଟା ଯୋଗାଯୋଗ ବ୍ୟକ୍ତି ଏହା ଦେଖନ୍ତି)",
+  notice_summary: "ଗୋପନୀୟତା ବିଜ୍ଞପ୍ତି (ଦୟାକରି ପଢ଼ନ୍ତୁ)",
+  consent: "ମୁଁ ଗୋପନୀୟତା ବିଜ୍ଞପ୍ତି ପଢ଼ିଛି। ବିଜ୍ଞପ୍ତିରେ କୁହାଯାଇଥିବା ଉଦ୍ଦେଶ୍ୟ ପାଇଁ ଆସୋସିଏସନ ଏହି ଅଭିଯୋଗ ଓ ଏହାର ଫଟୋ ବ୍ୟବହାର କରିପାରିବ ବୋଲି ମୁଁ ସହମତ।",
+  send: "ଅଭିଯୋଗ ପଠାନ୍ତୁ", sending: "ପଠାଯାଉଛି...",
+  done1: "ଧନ୍ୟବାଦ। ଆପଣଙ୍କ ଅଭିଯୋଗ ଦାଖଲ ହୋଇଛି।",
+  done2: "ଏହି ଟିକେଟ ନମ୍ବର ରଖନ୍ତୁ। ପରେ ଖବର ନେବା, ସଂଶୋଧନ କିମ୍ବା ଅଭିଯୋଗ ହଟାଇବା ପାଇଁ ଏହା କୁହନ୍ତୁ।",
+  e_place: "ଦୟାକରି ବର୍ଗ ଓ ସ୍ଥାନ ବାଛନ୍ତୁ।", e_desc: "ଦୟାକରି ସମସ୍ୟାଟି ଆଉ ଟିକେ ବିସ୍ତୃତ ଭାବେ ଲେଖନ୍ତୁ କିମ୍ବା ଭଏସ ନୋଟ ରେକର୍ଡ କରନ୍ତୁ।",
+  e_consent: "ଦୟାକରି ଗୋପନୀୟତା ବିଜ୍ଞପ୍ତି ପଢ଼ି ବାକ୍ସରେ ଟିକ ଦିଅନ୍ତୁ।", e_mygate: "ଦୟାକରି MyGate ପ୍ରଶ୍ନର ଉତ୍ତର ଦିଅନ୍ତୁ।",
+  e_photo: "ଏହି ଫଟୋ ପଢ଼ାଯାଇପାରିଲା ନାହିଁ। ଦୟାକରି ଅନ୍ୟ ଫଟୋ ଦିଅନ୍ତୁ।", e_photos_max: "କେବଳ ପ୍ରଥମ {n}ଟି ଫଟୋ ରଖାଗଲା।",
+  e_long: "ଗୋଟିଏ ଉତ୍ତର ବହୁତ ଲମ୍ବା।", e_rate: "ଗତ ଏକ ଘଣ୍ଟାରେ ବହୁତ ଅଭିଯୋଗ ଆସିଛି। ଦୟାକରି କିଛି ସମୟ ପରେ ଚେଷ୍ଟା କରନ୍ତୁ।",
+  e_generic: "କିଛି ଭୁଲ ହେଲା। ଦୟାକରି ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ।",
+  n_version: "ସଂସ୍କରଣ {v}।",
+  n_who_h: "ଆମେ କିଏ", n_who: "ଏହି ଫର୍ମ {society} ଚଳାଏ। ଡିଜିଟାଲ ବ୍ୟକ୍ତିଗତ ଡାଟା ସୁରକ୍ଷା ଅଧିନିୟମ 2023 ଅନୁଯାୟୀ ଆସୋସିଏସନ ହେଉଛି ଡାଟା ଫିଡୁସିଆରି। ଯୋଗାଯୋଗ: {email}।",
+  n_what_h: "ଆମେ କ'ଣ ସଂଗ୍ରହ କରୁ", n_what: "ସମସ୍ୟାର ପ୍ରକାର, ସ୍ଥାନ ଓ ସମୟ। ଆପଣଙ୍କ ବର୍ଣ୍ଣନା। ସର୍ବାଧିକ {n}ଟି ଫଟୋ। ଆପଣ ଏହାକୁ MyGate ରେ ଜଣାଇଥିଲେ କି ନାହିଁ। ଫୋନ ନମ୍ବର କିମ୍ବା ଇମେଲ, କେବଳ ଆପଣ ଦେବାକୁ ଚାହିଁଲେ। ଆମେ ଆପଣଙ୍କ ନାମ ପଚାରୁନାହିଁ। ଅପଲୋଡ ପୂର୍ବରୁ ଫଟୋଗୁଡ଼ିକ ଆପଣଙ୍କ ଫୋନରେ ପୁଣି ସେଭ କରାଯାଏ। ଏହା କ୍ୟାମେରା ରଖୁଥିବା ଲୋକେସନ ତଥ୍ୟ ହଟାଇ ଦିଏ।",
+  n_why_h: "କାହିଁକି", n_why: "ସମସ୍ୟା ଦାଖଲ କରିବା, ଠିକ ହେବା ପର୍ଯ୍ୟନ୍ତ ଅନୁସରଣ କରିବା ଓ ବାସିନ୍ଦାମାନଙ୍କ ସହ ନାମହୀନ ମୋଟ ହିସାବ ବାଣ୍ଟିବା ପାଇଁ। ଆପଣଙ୍କ ଡାଟା ଅନ୍ୟ କୌଣସି କାମରେ ବ୍ୟବହାର ହୁଏ ନାହିଁ।",
+  n_sees_h: "କିଏ ଦେଖେ", n_sees: "ଆସୋସିଏସନ ନିଯୁକ୍ତ କରିଥିବା ବାସିନ୍ଦା ମନିଟରଙ୍କ ଏକ ଛୋଟ ଦଳ ଅଭିଯୋଗ ଓ ଫଟୋ ଦେଖନ୍ତି। ସେମାନେ ଯୋଗାଯୋଗ ବିବରଣୀ କେବେ ଦେଖନ୍ତି ନାହିଁ। ତାହା କେବଳ ଆସୋସିଏସନର ଡାଟା ଯୋଗାଯୋଗ ବ୍ୟକ୍ତି ଦେଖନ୍ତି। ଡାଟା ଆସୋସିଏସନର ଆକାଉଣ୍ଟରେ Google Drive ଓ Google Sheets ରେ ରଖାଯାଏ। ଆମେ ଏହାକୁ କେବେ ବିକ୍ରି କରୁନାହିଁ କିମ୍ବା WhatsApp ଗ୍ରୁପରେ ଦେଉନାହିଁ।",
+  n_long_h: "କେତେ ଦିନ ରଖୁ", n_long: "ଟିକେଟ ବନ୍ଦ ହେବାର {d} ଦିନ ପରେ ଫଟୋ, ବର୍ଣ୍ଣନା ଓ ଯୋଗାଯୋଗ ବିବରଣୀ ଲିଭାଇ ଦିଆଯାଏ। ନାମହୀନ ଗଣନା ରଖାଯାଏ।",
+  n_rights_h: "ଆପଣଙ୍କ ଅଧିକାର", n_rights: "ଆପଣ ଯେକୌଣସି ସମୟରେ ସମ୍ମତି ପ୍ରତ୍ୟାହାର କରିପାରିବେ। ଆପଣଙ୍କ ଅଭିଯୋଗ ଦେଖିବା, ସଂଶୋଧନ କରିବା କିମ୍ବା ଲିଭାଇବା ପାଇଁ ମଧ୍ୟ କହିପାରିବେ। ଟିକେଟ ନମ୍ବର ସହ {email} କୁ ଇମେଲ କରନ୍ତୁ। ସମ୍ମତି ପ୍ରତ୍ୟାହାର କରିବା ଦେବା ପରି ସହଜ। ଆପଣଙ୍କ ତରଫରୁ କାମ କରିବାକୁ କାହାକୁ ମନୋନୀତ କରିପାରିବେ। ଆମ ଉତ୍ତରରେ ସନ୍ତୁଷ୍ଟ ନ ହେଲେ ଭାରତର ଡାଟା ସୁରକ୍ଷା ବୋର୍ଡରେ ଅଭିଯୋଗ କରିପାରିବେ।",
+  n_others_h: "ଅନ୍ୟମାନଙ୍କ ବିଷୟରେ", n_others: "ବ୍ୟକ୍ତି ନୁହେଁ, ସମସ୍ୟାଟି ବର୍ଣ୍ଣନା କରନ୍ତୁ। ମୁହଁ, ପିଲା କିମ୍ବା କାହା ଘର ଭିତରର ଫଟୋ ଅପଲୋଡ କରନ୍ତୁ ନାହିଁ। ଯେଉଁ ଅଭିଯୋଗରେ ଲୋକଙ୍କ ନାମ ନିଆଯାଏ କିମ୍ବା ଅପମାନ କରାଯାଏ, ଆମେ ତାହା ସଂପାଦନ କରିବୁ କିମ୍ବା ହଟାଇଦେବୁ।",
+  n_lang: "ଏହି ବିଜ୍ଞପ୍ତି ଇଂରାଜୀରେ ମଧ୍ୟ ଉପଲବ୍ଧ। ଅନୁବାଦରେ କିଛି ଅସ୍ପଷ୍ଟ ଥିଲେ ଇଂରାଜୀ ସଂସ୍କରଣ ପ୍ରଯୁଜ୍ୟ।",
+  CAT: ["ଲିଫ୍ଟ ଅଟକିଛି କିମ୍ବା ଚାଲୁନାହିଁ", "ଲିଫ୍ଟ ଆଲାର୍ମ କିମ୍ବା ଇଣ୍ଟରକମ କାମ କରୁନାହିଁ", "ନିଆଁ, ଧୂଆଁ କିମ୍ବା ପୋଡ଼ା ଗନ୍ଧ", "ଅଗ୍ନିଶମ ଉପକରଣ ନାହିଁ କିମ୍ବା ଖରାପ", "ଫାୟାର ଏକ୍ସିଟ କିମ୍ବା ସିଡ଼ି ବନ୍ଦ", "ଗ୍ୟାସ ଲିକ ଗନ୍ଧ", "ବିଦ୍ୟୁତ ବିପଦ (ଖୋଲା ତାର, ସ୍ପାର୍କ, ସକ)", "ଢାଞ୍ଚା ବିପଦ (ଫାଟ, ଖସୁଥିବା ପ୍ଲାଷ୍ଟର, ଭଙ୍ଗା ରେଲିଂ)", "ପାଣି ଜମା କିମ୍ବା ବିଦ୍ୟୁତ ପାଖରେ ପାଣି", "ସୁରକ୍ଷା କିମ୍ବା ସନ୍ଦେହଜନକ ବ୍ୟକ୍ତି", "ପିଲାମାନଙ୍କ ପାଇଁ ବିପଦ (ଖୋଲା ଶାଫ୍ଟ, ଅସୁରକ୍ଷିତ ଖେଳ ପଡ଼ିଆ)", "ଅନ୍ୟ ସୁରକ୍ଷା ବିପଦ"],
+  AREA: ["ଟାୱାର", "ପାର୍କିଂ", "କ୍ଲବହାଉସ", "ଗେଟ ଓ ଡ୍ରାଇଭୱେ", "ବଗିଚା କିମ୍ବା ଖେଳ ପଡ଼ିଆ", "ଅନ୍ୟ କମନ ଏରିଆ"],
+  OUT: ["କୌଣସି ଉତ୍ତର ନାହିଁ", "ଗ୍ରହଣ କଲେ କିନ୍ତୁ ଠିକ କଲେ ନାହିଁ", "ଠିକ ନ କରି ବନ୍ଦ କଲେ", "ଠିକ ହୋଇଗଲା"],
+},
+pa: {
+  _name: "ਪੰਜਾਬੀ",
+  title: "ਸੁਰੱਖਿਆ ਸਮੱਸਿਆ ਦੱਸੋ",
+  start: "ਸਮੱਸਿਆ ਦੱਸੋ",
+  next: "ਅੱਗੇ",
+  back: "ਪਿੱਛੇ",
+  wa_share: "ਇਹ ਸ਼ਿਕਾਇਤ ਸੁਰੱਖਿਆ ਗਰੁੱਪ ਨੂੰ ਭੇਜੋ",
+  wa_pick: "WhatsApp ਵਿੱਚ ਸ਼ਿਕਾਇਤ ਲਿਖੀ ਹੋਈ ਖੁੱਲ੍ਹੇਗੀ। ਸੁਰੱਖਿਆ ਗਰੁੱਪ ਚੁਣੋ ਅਤੇ ਭੇਜੋ ਦਬਾਓ। ਉੱਥੇ ਤੁਹਾਡਾ ਨਾਮ ਅਤੇ ਨੰਬਰ ਦਿਖੇਗਾ।",
+  n_wa: "ਜੇ ਤੁਸੀਂ ਖ਼ੁਦ ਆਪਣੀ ਸ਼ਿਕਾਇਤ ਸੁਰੱਖਿਆ WhatsApp ਗਰੁੱਪ ਵਿੱਚ ਸਾਂਝੀ ਕਰਦੇ ਹੋ, ਤਾਂ ਗਰੁੱਪ ਦੇ ਸਾਰੇ ਲੋਕ ਉਸਨੂੰ ਤੁਹਾਡੇ ਨਾਮ ਅਤੇ ਨੰਬਰ ਨਾਲ ਦੇਖਣਗੇ। ਸਾਂਝਾ ਕਰਨਾ ਤੁਹਾਡੀ ਮਰਜ਼ੀ ਹੈ।",
+  lift_call: "ਲਿਫ਼ਟ ਫਸ ਗਈ? Johnson Lifts ਨੂੰ ਫ਼ੋਨ ਕਰੋ",
+  lift_hint: "ਬ੍ਰੇਕਡਾਊਨ ਹੈਲਪਲਾਈਨ, Johnson Care। ਲਿਫ਼ਟ ਦੇ ਅੰਦਰ ਲੱਗੀ ਪਲੇਟ 'ਤੇ ਲਿਖਿਆ ਜੌਬ ਨੰਬਰ ਦੱਸੋ।",
+  urgent_t: "ਇਹ ਜ਼ਰੂਰੀ ਲੱਗਦਾ ਹੈ। ਪਹਿਲਾਂ ਮਦਦ ਲਓ।",
+  urgent_b: "ਹੁਣੇ ਫ਼ੋਨ ਕਰੋ ਜਾਂ ਸੁਰੱਖਿਆ ਗਰੁੱਪ ਨੂੰ ਦੱਸੋ। ਫਿਰ ਛੋਟੀ ਸ਼ਿਕਾਇਤ ਭੇਜੋ। ਬਾਕੀ ਸਵਾਲ ਬਾਅਦ ਵਿੱਚ।",
+  more: "ਹੋਰ ਵੇਰਵੇ (ਵਿਕਲਪਿਕ)",
+  emerg: "ਹੁਣੇ ਐਮਰਜੈਂਸੀ ਹੈ? ਪਹਿਲਾਂ 112 'ਤੇ ਫ਼ੋਨ ਕਰੋ। ਅੱਗ 101। ਐਂਬੂਲੈਂਸ 108।",
+  wa_btn: "ਸੁਰੱਖਿਆ WhatsApp ਗਰੁੱਪ ਨੂੰ ਦੱਸੋ",
+  wa_note: "ਗਰੁੱਪ ਵਿੱਚ ਸਾਰਿਆਂ ਨੂੰ ਤੁਹਾਡਾ ਨਾਮ ਅਤੇ ਨੰਬਰ ਦਿਖੇਗਾ।",
+  wa_after: "ਜੇ ਮਾਮਲਾ ਜ਼ਰੂਰੀ ਹੈ, ਤਾਂ ਹੁਣੇ ਸੁਰੱਖਿਆ ਗਰੁੱਪ ਨੂੰ ਵੀ ਦੱਸੋ।",
+  q_voice: "ਵੌਇਸ ਨੋਟ",
+  voice_hint: "(ਵਿਕਲਪਿਕ, ਵੱਧ ਤੋਂ ਵੱਧ 2 ਮਿੰਟ। ਤੁਹਾਡੀ ਆਵਾਜ਼ ਤੋਂ ਤੁਹਾਡੀ ਪਛਾਣ ਹੋ ਸਕਦੀ ਹੈ। ਲਿਖਣ ਨਾਲ ਤੁਸੀਂ ਗੁਮਨਾਮ ਰਹਿੰਦੇ ਹੋ)",
+  rec: "ਰਿਕਾਰਡ ਕਰੋ",
+  stop: "ਰੋਕੋ",
+  del: "ਹਟਾਓ",
+  e_mic: "ਮਾਈਕ੍ਰੋਫ਼ੋਨ ਵਰਤਿਆ ਨਹੀਂ ਜਾ ਸਕਿਆ। ਕਿਰਪਾ ਕਰਕੇ ਲਿਖ ਕੇ ਦੱਸੋ।",
+  n_voice: "ਜੇ ਤੁਸੀਂ ਵੌਇਸ ਨੋਟ ਰਿਕਾਰਡ ਕਰਦੇ ਹੋ, ਤਾਂ ਅਸੀਂ ਉਹ ਵੀ ਰੱਖਦੇ ਹਾਂ। ਇਸਨੂੰ ਫ਼ੋਟੋਆਂ ਦੇ ਨਾਲ ਹੀ ਮਿਟਾ ਦਿੱਤਾ ਜਾਂਦਾ ਹੈ।",
+  safe: "ਅਸੀਂ ਤੁਹਾਡਾ ਨਾਮ ਨਹੀਂ ਪੁੱਛਦੇ। ਸੰਪਰਕ ਜਾਣਕਾਰੀ ਦੇਣਾ ਵਿਕਲਪਿਕ ਹੈ। ਉਸਨੂੰ ਸਿਰਫ਼ ਡਾਟਾ ਸੰਪਰਕ ਵਿਅਕਤੀ ਦੇਖਦਾ ਹੈ। ਜੇ ਤੁਸੀਂ ਸ਼ਿਕਾਇਤ WhatsApp 'ਤੇ ਸਾਂਝੀ ਕਰਦੇ ਹੋ, ਤਾਂ ਗਰੁੱਪ ਤੁਹਾਡਾ ਨਾਮ ਅਤੇ ਨੰਬਰ ਦੇਖੇਗਾ।",
+  childT: "ਬੱਚੇ ਕੰਮ ਕਰ ਰਹੇ ਹਨ ਜਾਂ ਖ਼ਤਰੇ ਵਿੱਚ ਹਨ?",
+  childB: "ਚਾਈਲਡਲਾਈਨ 1098 ਜਾਂ ਪੁਲਿਸ 112 'ਤੇ ਫ਼ੋਨ ਕਰੋ। ਤੁਸੀਂ ਆਪਣਾ ਨਾਮ ਗੁਪਤ ਰੱਖ ਸਕਦੇ ਹੋ। ਕਿਰਪਾ ਕਰਕੇ ਬੱਚਿਆਂ ਦੀਆਂ ਫ਼ੋਟੋਆਂ ਨਾ ਖਿੱਚੋ ਅਤੇ ਨਾ ਹੀ ਇੱਥੇ ਅੱਪਲੋਡ ਕਰੋ।",
+  q_category: "ਸਮੱਸਿਆ ਕੀ ਹੈ?", pick_category: "ਸ਼੍ਰੇਣੀ ਚੁਣੋ",
+  q_tower: "ਕਿੱਥੇ?", pick_tower: "ਟਾਵਰ ਜਾਂ ਥਾਂ ਚੁਣੋ",
+  q_spot: "ਸਹੀ ਥਾਂ", spot_hint: "(ਵਿਕਲਪਿਕ, ਜਿਵੇਂ 12ਵੀਂ ਮੰਜ਼ਿਲ ਲਿਫ਼ਟ ਲਾਬੀ, ਬੇਸਮੈਂਟ 2 ਪਿੱਲਰ 40)",
+  q_when: "ਇਹ ਕਦੋਂ ਹੋਇਆ?", optional: "(ਵਿਕਲਪਿਕ)",
+  q_desc: "ਕੀ ਹੋਇਆ?", desc_ph: "ਵਿਅਕਤੀ ਨਹੀਂ, ਸਮੱਸਿਆ ਦੱਸੋ। ਇਹ ਕਿੰਨੀ ਵਾਰ ਹੁੰਦਾ ਹੈ, ਇਹ ਵੀ ਲਿਖੋ।",
+  q_photos: "ਫ਼ੋਟੋਆਂ", photo_hint: "(ਵਿਕਲਪਿਕ, ਵੱਧ ਤੋਂ ਵੱਧ {n}। ਅੱਪਲੋਡ ਤੋਂ ਪਹਿਲਾਂ ਲੋਕੇਸ਼ਨ ਜਾਣਕਾਰੀ ਹਟਾ ਦਿੱਤੀ ਜਾਂਦੀ ਹੈ)",
+  q_mygate: "ਕੀ ਤੁਸੀਂ ਇਹ ਪਹਿਲਾਂ MyGate 'ਤੇ ਦਰਜ ਕੀਤਾ ਸੀ?", yes: "ਹਾਂ", no: "ਨਹੀਂ",
+  q_mygate_ref: "MyGate ਟਿਕਟ ਨੰਬਰ", q_mygate_out: "MyGate 'ਤੇ ਕੀ ਹੋਇਆ?", pick_outcome: "ਇੱਕ ਚੁਣੋ",
+  q_contact: "ਜਵਾਬ ਲਈ ਫ਼ੋਨ ਜਾਂ ਈਮੇਲ", contact_hint: "(ਵਿਕਲਪਿਕ, ਸਿਰਫ਼ ਡਾਟਾ ਸੰਪਰਕ ਵਿਅਕਤੀ ਇਸਨੂੰ ਦੇਖਦਾ ਹੈ)",
+  notice_summary: "ਪਰਦੇਦਾਰੀ ਸੂਚਨਾ (ਕਿਰਪਾ ਕਰਕੇ ਪੜ੍ਹੋ)",
+  consent: "ਮੈਂ ਪਰਦੇਦਾਰੀ ਸੂਚਨਾ ਪੜ੍ਹ ਲਈ ਹੈ। ਮੈਂ ਸਹਿਮਤ ਹਾਂ ਕਿ ਐਸੋਸੀਏਸ਼ਨ ਇਸ ਸ਼ਿਕਾਇਤ ਅਤੇ ਇਸਦੀਆਂ ਫ਼ੋਟੋਆਂ ਨੂੰ ਸੂਚਨਾ ਵਿੱਚ ਦੱਸੇ ਮਕਸਦਾਂ ਲਈ ਵਰਤ ਸਕਦੀ ਹੈ।",
+  send: "ਸ਼ਿਕਾਇਤ ਭੇਜੋ", sending: "ਭੇਜੀ ਜਾ ਰਹੀ ਹੈ...",
+  done1: "ਧੰਨਵਾਦ। ਤੁਹਾਡੀ ਸ਼ਿਕਾਇਤ ਦਰਜ ਹੋ ਗਈ ਹੈ।",
+  done2: "ਇਹ ਟਿਕਟ ਨੰਬਰ ਸੰਭਾਲ ਕੇ ਰੱਖੋ। ਅੱਗੇ ਪੁੱਛਗਿੱਛ, ਸੋਧ ਜਾਂ ਸ਼ਿਕਾਇਤ ਹਟਾਉਣ ਲਈ ਇਹ ਦੱਸੋ।",
+  e_place: "ਕਿਰਪਾ ਕਰਕੇ ਸ਼੍ਰੇਣੀ ਅਤੇ ਥਾਂ ਚੁਣੋ।", e_desc: "ਕਿਰਪਾ ਕਰਕੇ ਸਮੱਸਿਆ ਥੋੜ੍ਹਾ ਹੋਰ ਵਿਸਥਾਰ ਨਾਲ ਲਿਖੋ ਜਾਂ ਵੌਇਸ ਨੋਟ ਰਿਕਾਰਡ ਕਰੋ।",
+  e_consent: "ਕਿਰਪਾ ਕਰਕੇ ਪਰਦੇਦਾਰੀ ਸੂਚਨਾ ਪੜ੍ਹੋ ਅਤੇ ਬਾਕਸ 'ਤੇ ਟਿੱਕ ਕਰੋ।", e_mygate: "ਕਿਰਪਾ ਕਰਕੇ MyGate ਵਾਲੇ ਸਵਾਲ ਦਾ ਜਵਾਬ ਦਿਓ।",
+  e_photo: "ਇਹ ਫ਼ੋਟੋ ਪੜ੍ਹੀ ਨਹੀਂ ਜਾ ਸਕੀ। ਕਿਰਪਾ ਕਰਕੇ ਕੋਈ ਹੋਰ ਫ਼ੋਟੋ ਦਿਓ।", e_photos_max: "ਸਿਰਫ਼ ਪਹਿਲੀਆਂ {n} ਫ਼ੋਟੋਆਂ ਰੱਖੀਆਂ ਗਈਆਂ।",
+  e_long: "ਇੱਕ ਜਵਾਬ ਬਹੁਤ ਲੰਮਾ ਹੈ।", e_rate: "ਪਿਛਲੇ ਇੱਕ ਘੰਟੇ ਵਿੱਚ ਬਹੁਤ ਸ਼ਿਕਾਇਤਾਂ ਆਈਆਂ ਹਨ। ਕਿਰਪਾ ਕਰਕੇ ਥੋੜ੍ਹੀ ਦੇਰ ਬਾਅਦ ਕੋਸ਼ਿਸ਼ ਕਰੋ।",
+  e_generic: "ਕੁਝ ਗ਼ਲਤ ਹੋ ਗਿਆ। ਕਿਰਪਾ ਕਰਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।",
+  n_version: "ਸੰਸਕਰਣ {v}।",
+  n_who_h: "ਅਸੀਂ ਕੌਣ ਹਾਂ", n_who: "ਇਹ ਫ਼ਾਰਮ {society} ਚਲਾਉਂਦੀ ਹੈ। ਡਿਜੀਟਲ ਨਿੱਜੀ ਡਾਟਾ ਸੁਰੱਖਿਆ ਐਕਟ 2023 ਅਧੀਨ ਐਸੋਸੀਏਸ਼ਨ ਡਾਟਾ ਫਿਡੂਸ਼ਰੀ ਹੈ। ਸੰਪਰਕ: {email}।",
+  n_what_h: "ਅਸੀਂ ਕੀ ਲੈਂਦੇ ਹਾਂ", n_what: "ਸਮੱਸਿਆ ਦੀ ਕਿਸਮ, ਥਾਂ ਅਤੇ ਸਮਾਂ। ਤੁਹਾਡਾ ਵੇਰਵਾ। ਵੱਧ ਤੋਂ ਵੱਧ {n} ਫ਼ੋਟੋਆਂ। ਕੀ ਤੁਸੀਂ ਇਸਨੂੰ MyGate 'ਤੇ ਦਰਜ ਕੀਤਾ ਸੀ। ਫ਼ੋਨ ਨੰਬਰ ਜਾਂ ਈਮੇਲ, ਸਿਰਫ਼ ਜੇ ਤੁਸੀਂ ਦੇਣਾ ਚਾਹੋ। ਅਸੀਂ ਤੁਹਾਡਾ ਨਾਮ ਨਹੀਂ ਪੁੱਛਦੇ। ਅੱਪਲੋਡ ਤੋਂ ਪਹਿਲਾਂ ਫ਼ੋਟੋਆਂ ਤੁਹਾਡੇ ਫ਼ੋਨ 'ਤੇ ਦੁਬਾਰਾ ਸੇਵ ਹੁੰਦੀਆਂ ਹਨ। ਇਸ ਨਾਲ ਕੈਮਰੇ ਵੱਲੋਂ ਰੱਖੀ ਲੋਕੇਸ਼ਨ ਹਟ ਜਾਂਦੀ ਹੈ।",
+  n_why_h: "ਕਿਉਂ", n_why: "ਸਮੱਸਿਆਵਾਂ ਦਰਜ ਕਰਨ, ਠੀਕ ਹੋਣ ਤੱਕ ਉਹਨਾਂ 'ਤੇ ਨਜ਼ਰ ਰੱਖਣ ਅਤੇ ਨਿਵਾਸੀਆਂ ਨਾਲ ਬਿਨਾਂ ਨਾਮ ਦੇ ਕੁੱਲ ਅੰਕੜੇ ਸਾਂਝੇ ਕਰਨ ਲਈ। ਤੁਹਾਡਾ ਡਾਟਾ ਹੋਰ ਕਿਸੇ ਕੰਮ ਲਈ ਨਹੀਂ ਵਰਤਿਆ ਜਾਂਦਾ।",
+  n_sees_h: "ਇਸਨੂੰ ਕੌਣ ਦੇਖਦਾ ਹੈ", n_sees: "ਐਸੋਸੀਏਸ਼ਨ ਵੱਲੋਂ ਨਿਯੁਕਤ ਨਿਵਾਸੀ ਮਾਨੀਟਰਾਂ ਦਾ ਇੱਕ ਛੋਟਾ ਸਮੂਹ ਸ਼ਿਕਾਇਤਾਂ ਅਤੇ ਫ਼ੋਟੋਆਂ ਦੇਖਦਾ ਹੈ। ਉਹ ਸੰਪਰਕ ਜਾਣਕਾਰੀ ਕਦੇ ਨਹੀਂ ਦੇਖਦੇ। ਉਹ ਸਿਰਫ਼ ਐਸੋਸੀਏਸ਼ਨ ਦਾ ਡਾਟਾ ਸੰਪਰਕ ਵਿਅਕਤੀ ਦੇਖਦਾ ਹੈ। ਡਾਟਾ ਐਸੋਸੀਏਸ਼ਨ ਦੇ ਖਾਤੇ ਵਿੱਚ Google Drive ਅਤੇ Google Sheets ਵਿੱਚ ਰੱਖਿਆ ਜਾਂਦਾ ਹੈ। ਅਸੀਂ ਇਸਨੂੰ ਕਦੇ ਨਹੀਂ ਵੇਚਦੇ ਅਤੇ ਨਾ ਹੀ WhatsApp ਗਰੁੱਪਾਂ ਵਿੱਚ ਪਾਉਂਦੇ ਹਾਂ।",
+  n_long_h: "ਅਸੀਂ ਇਸਨੂੰ ਕਿੰਨਾ ਸਮਾਂ ਰੱਖਦੇ ਹਾਂ", n_long: "ਟਿਕਟ ਬੰਦ ਹੋਣ ਤੋਂ {d} ਦਿਨ ਬਾਅਦ ਫ਼ੋਟੋਆਂ, ਵੇਰਵੇ ਅਤੇ ਸੰਪਰਕ ਜਾਣਕਾਰੀ ਮਿਟਾ ਦਿੱਤੀ ਜਾਂਦੀ ਹੈ। ਬਿਨਾਂ ਨਾਮ ਦੀ ਗਿਣਤੀ ਰੱਖੀ ਜਾਂਦੀ ਹੈ।",
+  n_rights_h: "ਤੁਹਾਡੇ ਅਧਿਕਾਰ", n_rights: "ਤੁਸੀਂ ਕਦੇ ਵੀ ਆਪਣੀ ਸਹਿਮਤੀ ਵਾਪਸ ਲੈ ਸਕਦੇ ਹੋ। ਤੁਸੀਂ ਆਪਣੀ ਸ਼ਿਕਾਇਤ ਦੇਖਣ, ਸੋਧਣ ਜਾਂ ਮਿਟਾਉਣ ਲਈ ਵੀ ਕਹਿ ਸਕਦੇ ਹੋ। ਆਪਣੇ ਟਿਕਟ ਨੰਬਰ ਨਾਲ {email} 'ਤੇ ਈਮੇਲ ਕਰੋ। ਸਹਿਮਤੀ ਵਾਪਸ ਲੈਣਾ ਦੇਣ ਜਿੰਨਾ ਹੀ ਆਸਾਨ ਹੈ। ਤੁਸੀਂ ਆਪਣੀ ਥਾਂ ਕੰਮ ਕਰਨ ਲਈ ਕਿਸੇ ਨੂੰ ਨਾਮਜ਼ਦ ਕਰ ਸਕਦੇ ਹੋ। ਜੇ ਤੁਸੀਂ ਸਾਡੇ ਜਵਾਬ ਤੋਂ ਸੰਤੁਸ਼ਟ ਨਹੀਂ ਹੋ, ਤਾਂ ਭਾਰਤ ਦੇ ਡਾਟਾ ਸੁਰੱਖਿਆ ਬੋਰਡ ਕੋਲ ਸ਼ਿਕਾਇਤ ਕਰ ਸਕਦੇ ਹੋ।",
+  n_others_h: "ਦੂਜੇ ਲੋਕਾਂ ਬਾਰੇ", n_others: "ਵਿਅਕਤੀ ਨਹੀਂ, ਸਮੱਸਿਆ ਦੱਸੋ। ਚਿਹਰਿਆਂ, ਬੱਚਿਆਂ ਜਾਂ ਕਿਸੇ ਦੇ ਘਰ ਦੇ ਅੰਦਰ ਦੀਆਂ ਫ਼ੋਟੋਆਂ ਅੱਪਲੋਡ ਨਾ ਕਰੋ। ਜਿਹਨਾਂ ਸ਼ਿਕਾਇਤਾਂ ਵਿੱਚ ਲੋਕਾਂ ਦੇ ਨਾਮ ਲਏ ਗਏ ਹੋਣ ਜਾਂ ਉਹਨਾਂ ਨੂੰ ਸ਼ਰਮਿੰਦਾ ਕੀਤਾ ਗਿਆ ਹੋਵੇ, ਉਹਨਾਂ ਨੂੰ ਅਸੀਂ ਬਦਲਾਂਗੇ ਜਾਂ ਹਟਾ ਦੇਵਾਂਗੇ।",
+  n_lang: "ਇਹ ਸੂਚਨਾ ਅੰਗਰੇਜ਼ੀ ਵਿੱਚ ਵੀ ਉਪਲਬਧ ਹੈ। ਜੇ ਅਨੁਵਾਦ ਵਿੱਚ ਕੁਝ ਸਪਸ਼ਟ ਨਾ ਹੋਵੇ, ਤਾਂ ਅੰਗਰੇਜ਼ੀ ਸੰਸਕਰਣ ਲਾਗੂ ਹੋਵੇਗਾ।",
+  CAT: ["ਲਿਫ਼ਟ ਫਸੀ ਹੈ ਜਾਂ ਬੰਦ ਹੈ", "ਲਿਫ਼ਟ ਦਾ ਅਲਾਰਮ ਜਾਂ ਇੰਟਰਕਾਮ ਕੰਮ ਨਹੀਂ ਕਰਦਾ", "ਅੱਗ, ਧੂੰਆਂ ਜਾਂ ਸੜਨ ਦੀ ਬੋ", "ਅੱਗ ਬੁਝਾਊ ਸਾਮਾਨ ਗਾਇਬ ਜਾਂ ਖ਼ਰਾਬ", "ਫ਼ਾਇਰ ਐਗਜ਼ਿਟ ਜਾਂ ਪੌੜੀਆਂ ਬੰਦ", "ਗੈਸ ਲੀਕ ਦੀ ਬੋ", "ਬਿਜਲੀ ਦਾ ਖ਼ਤਰਾ (ਨੰਗੀਆਂ ਤਾਰਾਂ, ਚੰਗਿਆੜੇ, ਕਰੰਟ)", "ਢਾਂਚੇ ਦਾ ਖ਼ਤਰਾ (ਤਰੇੜਾਂ, ਡਿੱਗਦਾ ਪਲਸਤਰ, ਟੁੱਟੀ ਰੇਲਿੰਗ)", "ਪਾਣੀ ਭਰਨਾ ਜਾਂ ਬਿਜਲੀ ਕੋਲ ਪਾਣੀ", "ਸੁਰੱਖਿਆ ਜਾਂ ਸ਼ੱਕੀ ਵਿਅਕਤੀ", "ਬੱਚਿਆਂ ਲਈ ਖ਼ਤਰਾ (ਖੁੱਲ੍ਹਾ ਸ਼ਾਫ਼ਟ, ਅਸੁਰੱਖਿਅਤ ਖੇਡ ਦਾ ਮੈਦਾਨ)", "ਹੋਰ ਸੁਰੱਖਿਆ ਖ਼ਤਰਾ"],
+  AREA: ["ਟਾਵਰ", "ਪਾਰਕਿੰਗ", "ਕਲੱਬਹਾਊਸ", "ਗੇਟ ਅਤੇ ਡਰਾਈਵਵੇ", "ਬਾਗ਼ ਜਾਂ ਖੇਡ ਦਾ ਮੈਦਾਨ", "ਹੋਰ ਕਾਮਨ ਏਰੀਆ"],
+  OUT: ["ਕੋਈ ਜਵਾਬ ਨਹੀਂ", "ਮੰਨਿਆ ਪਰ ਠੀਕ ਨਹੀਂ ਕੀਤਾ", "ਠੀਕ ਕੀਤੇ ਬਿਨਾਂ ਬੰਦ ਕਰ ਦਿੱਤਾ", "ਠੀਕ ਹੋ ਗਿਆ"],
+},
+ta: {
+  _name: "தமிழ்",
+  title: "பாதுகாப்புப் பிரச்சினையைத் தெரிவிக்கவும்",
+  start: "பிரச்சினையைத் தெரிவிக்கவும்",
+  next: "அடுத்து",
+  back: "பின்செல்",
+  wa_share: "இந்தப் புகாரைப் பாதுகாப்புக் குழுவுக்கு அனுப்பவும்",
+  wa_pick: "புகார் தட்டச்சு செய்யப்பட்ட நிலையில் WhatsApp திறக்கும். பாதுகாப்புக் குழுவைத் தேர்ந்தெடுத்து அனுப்பு அழுத்தவும். அங்கே உங்கள் பெயரும் எண்ணும் தெரியும்.",
+  n_wa: "நீங்களே உங்கள் புகாரைப் பாதுகாப்பு WhatsApp குழுவில் பகிர்ந்தால், குழுவில் உள்ள அனைவரும் அதை உங்கள் பெயர் மற்றும் எண்ணுடன் பார்ப்பார்கள். பகிர்வது உங்கள் விருப்பம்.",
+  lift_call: "லிஃப்ட் சிக்கியதா? Johnson Lifts ஐ அழைக்கவும்",
+  lift_hint: "பழுது உதவி எண், Johnson Care. லிஃப்ட் உள்ளே உள்ள தகட்டில் உள்ள வேலை எண்ணைச் சொல்லுங்கள்.",
+  urgent_t: "இது அவசரமாகத் தெரிகிறது. முதலில் உதவி பெறுங்கள்.",
+  urgent_b: "இப்போதே அழைக்கவும் அல்லது பாதுகாப்புக் குழுவுக்குத் தெரிவிக்கவும். பிறகு ஒரு சிறிய புகாரை அனுப்பவும். மற்ற கேள்விகள் காத்திருக்கலாம்.",
+  more: "மேலும் விவரங்கள் (விருப்பத்தேர்வு)",
+  emerg: "இப்போதே அவசரநிலையா? முதலில் 112 ஐ அழைக்கவும். தீயணைப்பு 101. ஆம்புலன்ஸ் 108.",
+  wa_btn: "பாதுகாப்பு WhatsApp குழுவுக்குத் தெரிவிக்கவும்",
+  wa_note: "குழுவில் உள்ள அனைவருக்கும் உங்கள் பெயரும் எண்ணும் தெரியும்.",
+  wa_after: "அவசரம் என்றால், இப்போதே பாதுகாப்புக் குழுவுக்கும் தெரிவிக்கவும்.",
+  q_voice: "குரல் பதிவு",
+  voice_hint: "(விருப்பத்தேர்வு, அதிகபட்சம் 2 நிமிடம். உங்கள் குரல் உங்களை அடையாளம் காட்டக்கூடும். தட்டச்சு செய்தால் நீங்கள் அநாமதேயமாக இருப்பீர்கள்)",
+  rec: "பதிவு செய்",
+  stop: "நிறுத்து",
+  del: "நீக்கு",
+  e_mic: "மைக்ரோஃபோனைப் பயன்படுத்த முடியவில்லை. தயவுசெய்து தட்டச்சு செய்யவும்.",
+  n_voice: "நீங்கள் குரல் பதிவு செய்தால், அதையும் வைத்திருப்போம். அது புகைப்படங்களுடன் சேர்த்து அழிக்கப்படும்.",
+  safe: "நாங்கள் உங்கள் பெயரைக் கேட்பதில்லை. தொடர்பு விவரங்கள் விருப்பத்தேர்வு. தரவு தொடர்பு நபர் மட்டுமே அவற்றைப் பார்ப்பார். புகாரை WhatsApp இல் பகிர்ந்தால், குழு உங்கள் பெயரையும் எண்ணையும் பார்க்கும்.",
+  childT: "குழந்தைகள் வேலை செய்கிறார்களா அல்லது ஆபத்தில் உள்ளார்களா?",
+  childB: "சைல்ட்லைன் 1098 அல்லது காவல்துறை 112 ஐ அழைக்கவும். உங்கள் பெயரை வெளியிட வேண்டியதில்லை. தயவுசெய்து குழந்தைகளைப் புகைப்படம் எடுக்கவோ இங்கே பதிவேற்றவோ வேண்டாம்.",
+  q_category: "பிரச்சினை என்ன?", pick_category: "வகையைத் தேர்ந்தெடுக்கவும்",
+  q_tower: "எங்கே?", pick_tower: "டவர் அல்லது இடத்தைத் தேர்ந்தெடுக்கவும்",
+  q_spot: "சரியான இடம்", spot_hint: "(விருப்பத்தேர்வு, எ.கா. 12வது மாடி லிஃப்ட் லாபி, பேஸ்மென்ட் 2 தூண் 40)",
+  q_when: "இது எப்போது நடந்தது?", optional: "(விருப்பத்தேர்வு)",
+  q_desc: "என்ன நடந்தது?", desc_ph: "நபரை அல்ல, பிரச்சினையை விவரிக்கவும். இது எவ்வளவு அடிக்கடி நடக்கிறது என்றும் எழுதவும்.",
+  q_photos: "புகைப்படங்கள்", photo_hint: "(விருப்பத்தேர்வு, அதிகபட்சம் {n}. பதிவேற்றும் முன் இருப்பிடத் தகவல் நீக்கப்படும்)",
+  q_mygate: "இதை ஏற்கனவே MyGate இல் பதிவு செய்தீர்களா?", yes: "ஆம்", no: "இல்லை",
+  q_mygate_ref: "MyGate டிக்கெட் எண்", q_mygate_out: "MyGate இல் என்ன நடந்தது?", pick_outcome: "ஒன்றைத் தேர்ந்தெடுக்கவும்",
+  q_contact: "பதிலுக்கு தொலைபேசி அல்லது மின்னஞ்சல்", contact_hint: "(விருப்பத்தேர்வு, தரவு தொடர்பு நபர் மட்டுமே இதைப் பார்ப்பார்)",
+  notice_summary: "தனியுரிமை அறிவிப்பு (தயவுசெய்து படிக்கவும்)",
+  consent: "நான் தனியுரிமை அறிவிப்பைப் படித்துவிட்டேன். அறிவிப்பில் கூறப்பட்ட நோக்கங்களுக்காக சங்கம் இந்தப் புகாரையும் அதன் புகைப்படங்களையும் பயன்படுத்த நான் ஒப்புக்கொள்கிறேன்.",
+  send: "புகாரை அனுப்பவும்", sending: "அனுப்பப்படுகிறது...",
+  done1: "நன்றி. உங்கள் புகார் பதிவு செய்யப்பட்டது.",
+  done2: "இந்த டிக்கெட் எண்ணை வைத்துக்கொள்ளவும். பின்தொடர, திருத்த அல்லது புகாரை நீக்க இதைக் குறிப்பிடவும்.",
+  e_place: "தயவுசெய்து வகையையும் இடத்தையும் தேர்ந்தெடுக்கவும்.", e_desc: "தயவுசெய்து பிரச்சினையை இன்னும் கொஞ்சம் விரிவாக எழுதவும் அல்லது குரல் பதிவு செய்யவும்.",
+  e_consent: "தயவுசெய்து தனியுரிமை அறிவிப்பைப் படித்து பெட்டியில் டிக் செய்யவும்.", e_mygate: "தயவுசெய்து MyGate கேள்விக்குப் பதிலளிக்கவும்.",
+  e_photo: "இந்தப் புகைப்படத்தைப் படிக்க முடியவில்லை. வேறு புகைப்படத்தை முயற்சிக்கவும்.", e_photos_max: "முதல் {n} புகைப்படங்கள் மட்டுமே வைக்கப்பட்டன.",
+  e_long: "ஒரு பதில் மிக நீளமாக உள்ளது.", e_rate: "கடந்த ஒரு மணி நேரத்தில் அதிகமான புகார்கள் வந்துள்ளன. சிறிது நேரம் கழித்து முயற்சிக்கவும்.",
+  e_generic: "ஏதோ தவறு நடந்தது. மீண்டும் முயற்சிக்கவும்.",
+  n_version: "பதிப்பு {v}.",
+  n_who_h: "நாங்கள் யார்", n_who: "இந்தப் படிவத்தை {society} நடத்துகிறது. டிஜிட்டல் தனிப்பட்ட தரவு பாதுகாப்புச் சட்டம் 2023 இன் கீழ் சங்கமே தரவு நம்பகப் பொறுப்பாளர் (Data Fiduciary). தொடர்பு: {email}.",
+  n_what_h: "நாங்கள் சேகரிப்பவை", n_what: "பிரச்சினையின் வகை, இடம் மற்றும் நேரம். உங்கள் விளக்கம். அதிகபட்சம் {n} புகைப்படங்கள். இதை MyGate இல் பதிவு செய்தீர்களா என்பது. நீங்கள் கொடுக்க விரும்பினால் மட்டுமே தொலைபேசி எண் அல்லது மின்னஞ்சல். நாங்கள் உங்கள் பெயரைக் கேட்பதில்லை. பதிவேற்றும் முன் புகைப்படங்கள் உங்கள் தொலைபேசியிலேயே மீண்டும் சேமிக்கப்படும். இதனால் கேமரா சேர்க்கும் இருப்பிடத் தகவல் நீங்கும்.",
+  n_why_h: "ஏன்", n_why: "பிரச்சினைகளைப் பதிவு செய்ய, அவை சரியாகும் வரை பின்தொடர மற்றும் குடியிருப்பாளர்களுடன் பெயரில்லாத மொத்த எண்ணிக்கைகளைப் பகிர. உங்கள் தரவு வேறு எதற்கும் பயன்படுத்தப்படாது.",
+  n_sees_h: "யார் பார்க்கிறார்கள்", n_sees: "சங்கம் நியமித்த குடியிருப்பாளர் கண்காணிப்பாளர்களின் ஒரு சிறிய குழு புகார்களையும் புகைப்படங்களையும் பார்க்கிறது. அவர்கள் தொடர்பு விவரங்களை ஒருபோதும் பார்ப்பதில்லை. அவற்றைச் சங்கத்தின் தரவு தொடர்பு நபர் மட்டுமே பார்ப்பார். தரவு சங்கத்தின் கணக்கில் Google Drive மற்றும் Google Sheets இல் சேமிக்கப்படுகிறது. நாங்கள் அதை ஒருபோதும் விற்பதில்லை, WhatsApp குழுக்களில் பகிர்வதும் இல்லை.",
+  n_long_h: "எவ்வளவு காலம் வைத்திருக்கிறோம்", n_long: "டிக்கெட் மூடப்பட்ட {d} நாட்களுக்குப் பிறகு புகைப்படங்கள், விளக்கங்கள் மற்றும் தொடர்பு விவரங்கள் அழிக்கப்படும். பெயரில்லாத எண்ணிக்கைகள் வைக்கப்படும்.",
+  n_rights_h: "உங்கள் உரிமைகள்", n_rights: "நீங்கள் எப்போது வேண்டுமானாலும் ஒப்புதலைத் திரும்பப் பெறலாம். உங்கள் புகாரைப் பார்க்க, திருத்த அல்லது அழிக்கவும் கேட்கலாம். உங்கள் டிக்கெட் எண்ணுடன் {email} க்கு மின்னஞ்சல் அனுப்பவும். ஒப்புதலைத் திரும்பப் பெறுவது கொடுப்பது போலவே எளிது. உங்கள் சார்பாகச் செயல்பட ஒருவரை நியமிக்கலாம். எங்கள் பதிலில் திருப்தி இல்லையெனில் இந்தியத் தரவு பாதுகாப்பு வாரியத்திடம் புகார் செய்யலாம்.",
+  n_others_h: "மற்றவர்களைப் பற்றி", n_others: "நபரை அல்ல, பிரச்சினையை விவரிக்கவும். முகங்கள், குழந்தைகள் அல்லது யாருடைய வீட்டின் உட்புறத்தின் புகைப்படங்களையும் பதிவேற்ற வேண்டாம். மக்களின் பெயரைக் குறிப்பிடும் அல்லது அவமானப்படுத்தும் புகார்களை நாங்கள் திருத்துவோம் அல்லது நீக்குவோம்.",
+  n_lang: "இந்த அறிவிப்பு ஆங்கிலத்திலும் கிடைக்கிறது. மொழிபெயர்ப்பில் ஏதேனும் தெளிவில்லையெனில் ஆங்கிலப் பதிப்பே பொருந்தும்.",
+  CAT: ["லிஃப்ட் சிக்கியுள்ளது அல்லது இயங்கவில்லை", "லிஃப்ட் அலாரம் அல்லது இண்டர்காம் வேலை செய்யவில்லை", "தீ, புகை அல்லது எரியும் வாசனை", "தீயணைப்புக் கருவிகள் இல்லை அல்லது வேலை செய்யவில்லை", "தீ வெளியேறும் வழி அல்லது படிக்கட்டு அடைக்கப்பட்டுள்ளது", "எரிவாயு கசிவு வாசனை", "மின் ஆபத்து (திறந்த கம்பிகள், தீப்பொறி, மின்அதிர்ச்சி)", "கட்டமைப்பு ஆபத்து (விரிசல்கள், விழும் பூச்சு, உடைந்த கைப்பிடி)", "நீர் தேக்கம் அல்லது மின்சாரம் அருகே நீர்", "பாதுகாப்பு அல்லது சந்தேகத்திற்குரிய நபர்", "குழந்தைகளுக்கு ஆபத்து (திறந்த ஷாஃப்ட், பாதுகாப்பற்ற விளையாட்டுப் பகுதி)", "மற்ற பாதுகாப்பு அபாயம்"],
+  AREA: ["டவர்", "பார்க்கிங்", "கிளப்ஹவுஸ்", "கேட் மற்றும் டிரைவ்வே", "தோட்டம் அல்லது விளையாட்டுப் பகுதி", "மற்ற பொதுப் பகுதி"],
+  OUT: ["பதில் இல்லை", "ஏற்றுக்கொண்டனர் ஆனால் சரிசெய்யவில்லை", "சரிசெய்யாமல் மூடப்பட்டது", "சரிசெய்யப்பட்டது"],
+},
+te: {
+  _name: "తెలుగు",
+  title: "భద్రతా సమస్యను తెలియజేయండి",
+  start: "సమస్యను తెలియజేయండి",
+  next: "తర్వాత",
+  back: "వెనుకకు",
+  wa_share: "ఈ ఫిర్యాదును భద్రతా గ్రూప్‌కు పంపండి",
+  wa_pick: "ఫిర్యాదు టైప్ చేసి ఉన్న WhatsApp తెరుచుకుంటుంది. భద్రతా గ్రూప్‌ను ఎంచుకుని పంపు నొక్కండి. అక్కడ మీ పేరు మరియు నంబర్ కనిపిస్తాయి.",
+  n_wa: "మీరే మీ ఫిర్యాదును భద్రతా WhatsApp గ్రూప్‌లో పంచుకుంటే, గ్రూప్‌లోని అందరూ దాన్ని మీ పేరు మరియు నంబర్‌తో చూస్తారు. పంచుకోవడం మీ ఇష్టం.",
+  lift_call: "లిఫ్ట్ ఆగిపోయిందా? Johnson Lifts కు కాల్ చేయండి",
+  lift_hint: "బ్రేక్‌డౌన్ హెల్ప్‌లైన్, Johnson Care. లిఫ్ట్ లోపల ఉన్న ప్లేట్‌పై ఉన్న జాబ్ నంబర్ చెప్పండి.",
+  urgent_t: "ఇది అత్యవసరంగా అనిపిస్తోంది. ముందు సహాయం పొందండి.",
+  urgent_b: "ఇప్పుడే కాల్ చేయండి లేదా భద్రతా గ్రూప్‌కు తెలియజేయండి. తర్వాత చిన్న ఫిర్యాదు పంపండి. మిగతా ప్రశ్నలు తర్వాత.",
+  more: "మరిన్ని వివరాలు (ఐచ్ఛికం)",
+  emerg: "ఇప్పుడే అత్యవసర పరిస్థితా? ముందుగా 112 కు కాల్ చేయండి. అగ్నిమాపక 101. అంబులెన్స్ 108.",
+  wa_btn: "భద్రతా WhatsApp గ్రూప్‌కు తెలియజేయండి",
+  wa_note: "గ్రూప్‌లోని అందరికీ మీ పేరు మరియు నంబర్ కనిపిస్తాయి.",
+  wa_after: "అత్యవసరమైతే, ఇప్పుడే భద్రతా గ్రూప్‌కు కూడా తెలియజేయండి.",
+  q_voice: "వాయిస్ నోట్",
+  voice_hint: "(ఐచ్ఛికం, గరిష్టంగా 2 నిమిషాలు. మీ గొంతు మిమ్మల్ని గుర్తించవచ్చు. టైప్ చేస్తే మీరు అజ్ఞాతంగా ఉంటారు)",
+  rec: "రికార్డ్ చేయండి",
+  stop: "ఆపండి",
+  del: "తొలగించండి",
+  e_mic: "మైక్రోఫోన్‌ను ఉపయోగించలేకపోయాము. దయచేసి టైప్ చేయండి.",
+  n_voice: "మీరు వాయిస్ నోట్ రికార్డ్ చేస్తే, దాన్ని కూడా ఉంచుతాము. అది ఫోటోలతో పాటే తొలగించబడుతుంది.",
+  safe: "మేము మీ పేరు అడగము. సంప్రదింపు వివరాలు ఐచ్ఛికం. డేటా సంప్రదింపు వ్యక్తి మాత్రమే వాటిని చూస్తారు. మీరు ఫిర్యాదును WhatsApp లో పంచుకుంటే, గ్రూప్‌కు మీ పేరు మరియు నంబర్ కనిపిస్తాయి.",
+  childT: "పిల్లలు పని చేస్తున్నారా లేదా ప్రమాదంలో ఉన్నారా?",
+  childB: "చైల్డ్‌లైన్ 1098 లేదా పోలీస్ 112 కు కాల్ చేయండి. మీరు పేరు చెప్పాల్సిన అవసరం లేదు. దయచేసి పిల్లల ఫోటోలు తీయవద్దు లేదా ఇక్కడ అప్‌లోడ్ చేయవద్దు.",
+  q_category: "సమస్య ఏమిటి?", pick_category: "వర్గాన్ని ఎంచుకోండి",
+  q_tower: "ఎక్కడ?", pick_tower: "టవర్ లేదా ప్రదేశాన్ని ఎంచుకోండి",
+  q_spot: "ఖచ్చితమైన ప్రదేశం", spot_hint: "(ఐచ్ఛికం, ఉదా. 12వ అంతస్తు లిఫ్ట్ లాబీ, బేస్‌మెంట్ 2 పిల్లర్ 40)",
+  q_when: "ఇది ఎప్పుడు జరిగింది?", optional: "(ఐచ్ఛికం)",
+  q_desc: "ఏమి జరిగింది?", desc_ph: "వ్యక్తిని కాదు, సమస్యను వివరించండి. ఇది ఎంత తరచుగా జరుగుతుందో కూడా రాయండి.",
+  q_photos: "ఫోటోలు", photo_hint: "(ఐచ్ఛికం, గరిష్టంగా {n}. అప్‌లోడ్ చేసే ముందు లొకేషన్ సమాచారం తీసివేయబడుతుంది)",
+  q_mygate: "మీరు దీన్ని ఇప్పటికే MyGate లో నమోదు చేశారా?", yes: "అవును", no: "లేదు",
+  q_mygate_ref: "MyGate టికెట్ నంబర్", q_mygate_out: "MyGate లో ఏమి జరిగింది?", pick_outcome: "ఒకటి ఎంచుకోండి",
+  q_contact: "జవాబు కోసం ఫోన్ లేదా ఇమెయిల్", contact_hint: "(ఐచ్ఛికం, డేటా సంప్రదింపు వ్యక్తి మాత్రమే దీన్ని చూస్తారు)",
+  notice_summary: "గోప్యతా నోటీసు (దయచేసి చదవండి)",
+  consent: "నేను గోప్యతా నోటీసు చదివాను. నోటీసులో చెప్పిన ప్రయోజనాల కోసం సంఘం ఈ ఫిర్యాదును మరియు దాని ఫోటోలను ఉపయోగించడానికి నేను అంగీకరిస్తున్నాను.",
+  send: "ఫిర్యాదు పంపండి", sending: "పంపుతోంది...",
+  done1: "ధన్యవాదాలు. మీ ఫిర్యాదు నమోదైంది.",
+  done2: "ఈ టికెట్ నంబర్‌ను దాచుకోండి. తదుపరి విచారణ, సవరణ లేదా ఫిర్యాదు తొలగింపు కోసం దీన్ని తెలియజేయండి.",
+  e_place: "దయచేసి వర్గం మరియు ప్రదేశాన్ని ఎంచుకోండి.", e_desc: "దయచేసి సమస్యను ఇంకొంచెం వివరంగా రాయండి లేదా వాయిస్ నోట్ రికార్డ్ చేయండి.",
+  e_consent: "దయచేసి గోప్యతా నోటీసు చదివి బాక్స్‌ను టిక్ చేయండి.", e_mygate: "దయచేసి MyGate ప్రశ్నకు సమాధానం ఇవ్వండి.",
+  e_photo: "ఈ ఫోటోను చదవలేకపోయాము. దయచేసి వేరే ఫోటో ప్రయత్నించండి.", e_photos_max: "మొదటి {n} ఫోటోలు మాత్రమే ఉంచబడ్డాయి.",
+  e_long: "ఒక సమాధానం చాలా పొడవుగా ఉంది.", e_rate: "గత గంటలో చాలా ఫిర్యాదులు వచ్చాయి. దయచేసి కొంత సమయం తర్వాత ప్రయత్నించండి.",
+  e_generic: "ఏదో పొరపాటు జరిగింది. దయచేసి మళ్ళీ ప్రయత్నించండి.",
+  n_version: "వెర్షన్ {v}.",
+  n_who_h: "మేము ఎవరం", n_who: "ఈ ఫారమ్‌ను {society} నడుపుతుంది. డిజిటల్ వ్యక్తిగత డేటా రక్షణ చట్టం 2023 ప్రకారం సంఘమే డేటా ఫిడ్యూషియరీ. సంప్రదించండి: {email}.",
+  n_what_h: "మేము ఏమి సేకరిస్తాము", n_what: "సమస్య రకం, ప్రదేశం మరియు సమయం. మీ వివరణ. గరిష్టంగా {n} ఫోటోలు. మీరు దీన్ని MyGate లో నమోదు చేశారా అనేది. మీరు ఇవ్వాలనుకుంటేనే ఫోన్ నంబర్ లేదా ఇమెయిల్. మేము మీ పేరు అడగము. అప్‌లోడ్ చేసే ముందు ఫోటోలు మీ ఫోన్‌లోనే మళ్ళీ సేవ్ చేయబడతాయి. దీని వల్ల కెమెరా జోడించే లొకేషన్ తొలగిపోతుంది.",
+  n_why_h: "ఎందుకు", n_why: "సమస్యలను నమోదు చేయడానికి, అవి పరిష్కారమయ్యే వరకు అనుసరించడానికి మరియు నివాసితులతో పేరు లేని మొత్తం లెక్కలను పంచుకోవడానికి. మీ డేటాను మరే పనికీ ఉపయోగించము.",
+  n_sees_h: "ఎవరు చూస్తారు", n_sees: "సంఘం నియమించిన నివాసి మానిటర్ల చిన్న బృందం ఫిర్యాదులు మరియు ఫోటోలను చూస్తుంది. వారు సంప్రదింపు వివరాలను ఎప్పుడూ చూడరు. వాటిని సంఘం యొక్క డేటా సంప్రదింపు వ్యక్తి మాత్రమే చూస్తారు. డేటా సంఘం ఖాతాలో Google Drive మరియు Google Sheets లో ఉంచబడుతుంది. మేము దీన్ని ఎప్పుడూ అమ్మము, WhatsApp గ్రూపుల్లో పెట్టము.",
+  n_long_h: "ఎంత కాలం ఉంచుతాము", n_long: "టికెట్ మూసివేసిన {d} రోజుల తర్వాత ఫోటోలు, వివరణలు మరియు సంప్రదింపు వివరాలు తొలగించబడతాయి. పేరు లేని లెక్కలు ఉంచబడతాయి.",
+  n_rights_h: "మీ హక్కులు", n_rights: "మీరు ఎప్పుడైనా మీ సమ్మతిని ఉపసంహరించుకోవచ్చు. మీ ఫిర్యాదును చూడమని, సవరించమని లేదా తొలగించమని కూడా అడగవచ్చు. మీ టికెట్ నంబర్‌తో {email} కు ఇమెయిల్ చేయండి. సమ్మతి ఉపసంహరించుకోవడం ఇవ్వడం అంత సులభం. మీ తరపున వ్యవహరించడానికి ఎవరినైనా నామినేట్ చేయవచ్చు. మా సమాధానంతో మీకు సంతృప్తి లేకపోతే భారత డేటా రక్షణ బోర్డుకు ఫిర్యాదు చేయవచ్చు.",
+  n_others_h: "ఇతరుల గురించి", n_others: "వ్యక్తిని కాదు, సమస్యను వివరించండి. ముఖాలు, పిల్లలు లేదా ఎవరి ఇంటి లోపలి ఫోటోలను అప్‌లోడ్ చేయవద్దు. వ్యక్తుల పేర్లు చెప్పే లేదా అవమానించే ఫిర్యాదులను మేము సవరిస్తాము లేదా తొలగిస్తాము.",
+  n_lang: "ఈ నోటీసు ఆంగ్లంలో కూడా అందుబాటులో ఉంది. అనువాదంలో ఏదైనా అస్పష్టంగా ఉంటే, ఆంగ్ల వెర్షన్ వర్తిస్తుంది.",
+  CAT: ["లిఫ్ట్ ఆగిపోయింది లేదా పనిచేయడం లేదు", "లిఫ్ట్ అలారం లేదా ఇంటర్‌కామ్ పనిచేయడం లేదు", "మంటలు, పొగ లేదా కాలుతున్న వాసన", "అగ్నిమాపక పరికరాలు లేవు లేదా పనిచేయడం లేదు", "ఫైర్ ఎగ్జిట్ లేదా మెట్లు మూసుకుపోయాయి", "గ్యాస్ లీక్ వాసన", "విద్యుత్ ప్రమాదం (తెరిచి ఉన్న వైర్లు, నిప్పురవ్వలు, షాక్)", "నిర్మాణ ప్రమాదం (పగుళ్లు, రాలుతున్న ప్లాస్టర్, విరిగిన రెయిలింగ్)", "నీరు నిలవడం లేదా విద్యుత్ దగ్గర నీరు", "భద్రత లేదా అనుమానాస్పద వ్యక్తి", "పిల్లలకు ప్రమాదం (తెరిచి ఉన్న షాఫ్ట్, అసురక్షిత ఆట స్థలం)", "ఇతర భద్రతా ప్రమాదం"],
+  AREA: ["టవర్", "పార్కింగ్", "క్లబ్‌హౌస్", "గేట్ మరియు డ్రైవ్‌వే", "తోట లేదా ఆట స్థలం", "ఇతర కామన్ ఏరియా"],
+  OUT: ["ఎలాంటి స్పందన లేదు", "అంగీకరించారు కానీ సరిచేయలేదు", "సరిచేయకుండానే మూసివేశారు", "సరిచేశారు"],
+},
+ml: {
+  _name: "മലയാളം",
+  title: "സുരക്ഷാ പ്രശ്നം റിപ്പോർട്ട് ചെയ്യുക",
+  start: "പ്രശ്നം റിപ്പോർട്ട് ചെയ്യുക",
+  next: "അടുത്തത്",
+  back: "പിന്നോട്ട്",
+  wa_share: "ഈ പരാതി സുരക്ഷാ ഗ്രൂപ്പിലേക്ക് അയയ്ക്കുക",
+  wa_pick: "പരാതി ടൈപ്പ് ചെയ്ത നിലയിൽ WhatsApp തുറക്കും. സുരക്ഷാ ഗ്രൂപ്പ് തിരഞ്ഞെടുത്ത് അയയ്ക്കുക അമർത്തുക. അവിടെ നിങ്ങളുടെ പേരും നമ്പറും കാണാം.",
+  n_wa: "നിങ്ങൾ സ്വയം പരാതി സുരക്ഷാ WhatsApp ഗ്രൂപ്പിൽ പങ്കിട്ടാൽ, ഗ്രൂപ്പിലെ എല്ലാവരും അത് നിങ്ങളുടെ പേരും നമ്പറും സഹിതം കാണും. പങ്കിടുന്നത് നിങ്ങളുടെ ഇഷ്ടമാണ്.",
+  lift_call: "ലിഫ്റ്റ് കുടുങ്ങിയോ? Johnson Lifts നെ വിളിക്കുക",
+  lift_hint: "ബ്രേക്ക്ഡൗൺ ഹെൽപ്‌ലൈൻ, Johnson Care. ലിഫ്റ്റിനുള്ളിലെ പ്ലേറ്റിലുള്ള ജോബ് നമ്പർ പറയുക.",
+  urgent_t: "ഇത് അടിയന്തരമാണെന്ന് തോന്നുന്നു. ആദ്യം സഹായം തേടുക.",
+  urgent_b: "ഇപ്പോൾ വിളിക്കുക അല്ലെങ്കിൽ സുരക്ഷാ ഗ്രൂപ്പിനെ അറിയിക്കുക. പിന്നെ ഒരു ചെറിയ പരാതി അയയ്ക്കുക. മറ്റ് ചോദ്യങ്ങൾ പിന്നീട്.",
+  more: "കൂടുതൽ വിവരങ്ങൾ (ഓപ്ഷണൽ)",
+  emerg: "ഇപ്പോൾ അടിയന്തരാവസ്ഥയാണോ? ആദ്യം 112 ൽ വിളിക്കുക. ഫയർ 101. ആംബുലൻസ് 108.",
+  wa_btn: "സുരക്ഷാ WhatsApp ഗ്രൂപ്പിനെ അറിയിക്കുക",
+  wa_note: "ഗ്രൂപ്പിലെ എല്ലാവർക്കും നിങ്ങളുടെ പേരും നമ്പറും കാണാം.",
+  wa_after: "അടിയന്തരമാണെങ്കിൽ ഇപ്പോൾ തന്നെ സുരക്ഷാ ഗ്രൂപ്പിനെയും അറിയിക്കുക.",
+  q_voice: "വോയ്‌സ് നോട്ട്",
+  voice_hint: "(ഓപ്ഷണൽ, പരമാവധി 2 മിനിറ്റ്. നിങ്ങളുടെ ശബ്ദം നിങ്ങളെ തിരിച്ചറിയാൻ ഇടയാക്കാം. ടൈപ്പ് ചെയ്താൽ നിങ്ങൾ അജ്ഞാതനായി തുടരും)",
+  rec: "റെക്കോർഡ് ചെയ്യുക",
+  stop: "നിർത്തുക",
+  del: "നീക്കം ചെയ്യുക",
+  e_mic: "മൈക്രോഫോൺ ഉപയോഗിക്കാൻ കഴിഞ്ഞില്ല. ദയവായി ടൈപ്പ് ചെയ്യുക.",
+  n_voice: "നിങ്ങൾ വോയ്‌സ് നോട്ട് റെക്കോർഡ് ചെയ്താൽ അതും സൂക്ഷിക്കും. അത് ഫോട്ടോകൾക്കൊപ്പം മായ്ക്കും.",
+  safe: "ഞങ്ങൾ നിങ്ങളുടെ പേര് ചോദിക്കുന്നില്ല. ബന്ധപ്പെടാനുള്ള വിവരങ്ങൾ ഓപ്ഷണലാണ്. ഡാറ്റ കോൺടാക്റ്റ് വ്യക്തി മാത്രം അവ കാണും. നിങ്ങൾ പരാതി WhatsApp ൽ പങ്കിട്ടാൽ ഗ്രൂപ്പിന് നിങ്ങളുടെ പേരും നമ്പറും കാണാം.",
+  childT: "കുട്ടികൾ ജോലി ചെയ്യുന്നുണ്ടോ അല്ലെങ്കിൽ അപകടത്തിലാണോ?",
+  childB: "ചൈൽഡ്‌ലൈൻ 1098 അല്ലെങ്കിൽ പോലീസ് 112 ൽ വിളിക്കുക. നിങ്ങൾക്ക് പേര് വെളിപ്പെടുത്തേണ്ടതില്ല. ദയവായി കുട്ടികളുടെ ഫോട്ടോ എടുക്കുകയോ ഇവിടെ അപ്‌ലോഡ് ചെയ്യുകയോ ചെയ്യരുത്.",
+  q_category: "പ്രശ്നം എന്താണ്?", pick_category: "വിഭാഗം തിരഞ്ഞെടുക്കുക",
+  q_tower: "എവിടെ?", pick_tower: "ടവർ അല്ലെങ്കിൽ സ്ഥലം തിരഞ്ഞെടുക്കുക",
+  q_spot: "കൃത്യമായ സ്ഥലം", spot_hint: "(ഓപ്ഷണൽ, ഉദാ. 12ആം നില ലിഫ്റ്റ് ലോബി, ബേസ്‌മെന്റ് 2 തൂൺ 40)",
+  q_when: "ഇത് എപ്പോൾ സംഭവിച്ചു?", optional: "(ഓപ്ഷണൽ)",
+  q_desc: "എന്താണ് സംഭവിച്ചത്?", desc_ph: "വ്യക്തിയെയല്ല, പ്രശ്നം വിവരിക്കുക. ഇത് എത്ര തവണ സംഭവിക്കുന്നു എന്നും എഴുതുക.",
+  q_photos: "ഫോട്ടോകൾ", photo_hint: "(ഓപ്ഷണൽ, പരമാവധി {n}. അപ്‌ലോഡ് ചെയ്യുന്നതിന് മുമ്പ് ലൊക്കേഷൻ വിവരങ്ങൾ നീക്കം ചെയ്യും)",
+  q_mygate: "നിങ്ങൾ ഇത് ഇതിനകം MyGate ൽ റിപ്പോർട്ട് ചെയ്തിട്ടുണ്ടോ?", yes: "ഉണ്ട്", no: "ഇല്ല",
+  q_mygate_ref: "MyGate ടിക്കറ്റ് നമ്പർ", q_mygate_out: "MyGate ൽ എന്ത് സംഭവിച്ചു?", pick_outcome: "ഒന്ന് തിരഞ്ഞെടുക്കുക",
+  q_contact: "മറുപടിക്കായി ഫോൺ അല്ലെങ്കിൽ ഇമെയിൽ", contact_hint: "(ഓപ്ഷണൽ, ഡാറ്റ കോൺടാക്റ്റ് വ്യക്തി മാത്രം ഇത് കാണും)",
+  notice_summary: "സ്വകാര്യതാ അറിയിപ്പ് (ദയവായി വായിക്കുക)",
+  consent: "ഞാൻ സ്വകാര്യതാ അറിയിപ്പ് വായിച്ചു. അറിയിപ്പിൽ പറഞ്ഞ ആവശ്യങ്ങൾക്കായി അസോസിയേഷൻ ഈ പരാതിയും അതിന്റെ ഫോട്ടോകളും ഉപയോഗിക്കുന്നതിന് ഞാൻ സമ്മതിക്കുന്നു.",
+  send: "പരാതി അയയ്ക്കുക", sending: "അയയ്ക്കുന്നു...",
+  done1: "നന്ദി. നിങ്ങളുടെ പരാതി രേഖപ്പെടുത്തി.",
+  done2: "ഈ ടിക്കറ്റ് നമ്പർ സൂക്ഷിക്കുക. തുടർ അന്വേഷണത്തിനോ തിരുത്തലിനോ പരാതി നീക്കം ചെയ്യാനോ ഇത് പറയുക.",
+  e_place: "ദയവായി വിഭാഗവും സ്ഥലവും തിരഞ്ഞെടുക്കുക.", e_desc: "ദയവായി പ്രശ്നം കുറച്ചുകൂടി വിശദമായി എഴുതുക അല്ലെങ്കിൽ വോയ്‌സ് നോട്ട് റെക്കോർഡ് ചെയ്യുക.",
+  e_consent: "ദയവായി സ്വകാര്യതാ അറിയിപ്പ് വായിച്ച് ബോക്സിൽ ടിക്ക് ചെയ്യുക.", e_mygate: "ദയവായി MyGate ചോദ്യത്തിന് ഉത്തരം നൽകുക.",
+  e_photo: "ഈ ഫോട്ടോ വായിക്കാൻ കഴിഞ്ഞില്ല. ദയവായി മറ്റൊരു ഫോട്ടോ ശ്രമിക്കുക.", e_photos_max: "ആദ്യത്തെ {n} ഫോട്ടോകൾ മാത്രം സൂക്ഷിച്ചു.",
+  e_long: "ഒരു ഉത്തരം വളരെ നീളമുള്ളതാണ്.", e_rate: "കഴിഞ്ഞ ഒരു മണിക്കൂറിൽ വളരെയധികം പരാതികൾ വന്നു. ദയവായി കുറച്ച് കഴിഞ്ഞ് ശ്രമിക്കുക.",
+  e_generic: "എന്തോ പിശക് സംഭവിച്ചു. ദയവായി വീണ്ടും ശ്രമിക്കുക.",
+  n_version: "പതിപ്പ് {v}.",
+  n_who_h: "ഞങ്ങൾ ആരാണ്", n_who: "ഈ ഫോം നടത്തുന്നത് {society} ആണ്. ഡിജിറ്റൽ വ്യക്തിഗത ഡാറ്റ സംരക്ഷണ നിയമം 2023 പ്രകാരം അസോസിയേഷനാണ് ഡാറ്റ ഫിഡ്യൂഷ്യറി. ബന്ധപ്പെടുക: {email}.",
+  n_what_h: "ഞങ്ങൾ എന്ത് ശേഖരിക്കുന്നു", n_what: "പ്രശ്നത്തിന്റെ തരം, സ്ഥലം, സമയം. നിങ്ങളുടെ വിവരണം. പരമാവധി {n} ഫോട്ടോകൾ. നിങ്ങൾ ഇത് MyGate ൽ റിപ്പോർട്ട് ചെയ്തോ എന്നത്. നിങ്ങൾ നൽകാൻ ആഗ്രഹിക്കുന്നുവെങ്കിൽ മാത്രം ഫോൺ നമ്പർ അല്ലെങ്കിൽ ഇമെയിൽ. ഞങ്ങൾ നിങ്ങളുടെ പേര് ചോദിക്കുന്നില്ല. അപ്‌ലോഡ് ചെയ്യുന്നതിന് മുമ്പ് ഫോട്ടോകൾ നിങ്ങളുടെ ഫോണിൽ തന്നെ വീണ്ടും സേവ് ചെയ്യും. ഇതോടെ ക്യാമറ ചേർക്കുന്ന ലൊക്കേഷൻ വിവരം നീങ്ങും.",
+  n_why_h: "എന്തിന്", n_why: "പ്രശ്നങ്ങൾ രേഖപ്പെടുത്താനും പരിഹരിക്കുന്നതുവരെ പിന്തുടരാനും താമസക്കാരുമായി പേരില്ലാത്ത ആകെ കണക്കുകൾ പങ്കുവയ്ക്കാനും. നിങ്ങളുടെ ഡാറ്റ മറ്റൊന്നിനും ഉപയോഗിക്കില്ല.",
+  n_sees_h: "ആരാണ് കാണുന്നത്", n_sees: "അസോസിയേഷൻ നിയമിച്ച താമസക്കാരായ മോണിറ്റർമാരുടെ ഒരു ചെറിയ സംഘം പരാതികളും ഫോട്ടോകളും കാണും. അവർ ബന്ധപ്പെടാനുള്ള വിവരങ്ങൾ ഒരിക്കലും കാണില്ല. അവ അസോസിയേഷന്റെ ഡാറ്റ കോൺടാക്റ്റ് വ്യക്തി മാത്രം കാണും. ഡാറ്റ അസോസിയേഷന്റെ അക്കൗണ്ടിൽ Google Drive, Google Sheets എന്നിവയിൽ സൂക്ഷിക്കുന്നു. ഞങ്ങൾ ഇത് ഒരിക്കലും വിൽക്കുകയോ WhatsApp ഗ്രൂപ്പുകളിൽ ഇടുകയോ ചെയ്യില്ല.",
+  n_long_h: "എത്ര കാലം സൂക്ഷിക്കും", n_long: "ടിക്കറ്റ് അടച്ച് {d} ദിവസത്തിന് ശേഷം ഫോട്ടോകൾ, വിവരണങ്ങൾ, ബന്ധപ്പെടാനുള്ള വിവരങ്ങൾ എന്നിവ മായ്ക്കും. പേരില്ലാത്ത കണക്കുകൾ സൂക്ഷിക്കും.",
+  n_rights_h: "നിങ്ങളുടെ അവകാശങ്ങൾ", n_rights: "നിങ്ങൾക്ക് എപ്പോൾ വേണമെങ്കിലും സമ്മതം പിൻവലിക്കാം. നിങ്ങളുടെ പരാതി കാണാനോ തിരുത്താനോ മായ്ക്കാനോ ആവശ്യപ്പെടാം. ടിക്കറ്റ് നമ്പർ സഹിതം {email} ലേക്ക് ഇമെയിൽ ചെയ്യുക. സമ്മതം പിൻവലിക്കുന്നത് നൽകുന്നത് പോലെ എളുപ്പമാണ്. നിങ്ങൾക്കുവേണ്ടി പ്രവർത്തിക്കാൻ ഒരാളെ നാമനിർദ്ദേശം ചെയ്യാം. ഞങ്ങളുടെ മറുപടിയിൽ തൃപ്തിയില്ലെങ്കിൽ ഇന്ത്യയുടെ ഡാറ്റ പ്രൊട്ടക്ഷൻ ബോർഡിൽ പരാതിപ്പെടാം.",
+  n_others_h: "മറ്റുള്ളവരെക്കുറിച്ച്", n_others: "വ്യക്തിയെയല്ല, പ്രശ്നം വിവരിക്കുക. മുഖങ്ങൾ, കുട്ടികൾ, ആരുടെയെങ്കിലും വീടിന്റെ ഉൾഭാഗം എന്നിവയുടെ ഫോട്ടോകൾ അപ്‌ലോഡ് ചെയ്യരുത്. ആളുകളുടെ പേര് പറയുന്നതോ അപമാനിക്കുന്നതോ ആയ പരാതികൾ ഞങ്ങൾ തിരുത്തുകയോ നീക്കം ചെയ്യുകയോ ചെയ്യും.",
+  n_lang: "ഈ അറിയിപ്പ് ഇംഗ്ലീഷിലും ലഭ്യമാണ്. വിവർത്തനത്തിൽ എന്തെങ്കിലും വ്യക്തമല്ലെങ്കിൽ ഇംഗ്ലീഷ് പതിപ്പ് ബാധകമാകും.",
+  CAT: ["ലിഫ്റ്റ് കുടുങ്ങി അല്ലെങ്കിൽ പ്രവർത്തിക്കുന്നില്ല", "ലിഫ്റ്റ് അലാറം അല്ലെങ്കിൽ ഇന്റർകോം പ്രവർത്തിക്കുന്നില്ല", "തീ, പുക അല്ലെങ്കിൽ കത്തുന്ന മണം", "അഗ്നിശമന ഉപകരണങ്ങൾ ഇല്ല അല്ലെങ്കിൽ പ്രവർത്തിക്കുന്നില്ല", "ഫയർ എക്സിറ്റ് അല്ലെങ്കിൽ കോണിപ്പടി തടസ്സപ്പെട്ടു", "ഗ്യാസ് ചോർച്ചയുടെ മണം", "വൈദ്യുത അപകടം (തുറന്ന വയറുകൾ, തീപ്പൊരി, ഷോക്ക്)", "ഘടനാപരമായ അപകടം (വിള്ളലുകൾ, അടർന്നുവീഴുന്ന പ്ലാസ്റ്റർ, തകർന്ന കൈവരി)", "വെള്ളക്കെട്ട് അല്ലെങ്കിൽ വൈദ്യുതിക്ക് സമീപം വെള്ളം", "സുരക്ഷ അല്ലെങ്കിൽ സംശയാസ്പദ വ്യക്തി", "കുട്ടികൾക്ക് അപകടം (തുറന്ന ഷാഫ്റ്റ്, സുരക്ഷിതമല്ലാത്ത കളിസ്ഥലം)", "മറ്റ് സുരക്ഷാ അപകടം"],
+  AREA: ["ടവർ", "പാർക്കിംഗ്", "ക്ലബ്‌ഹൗസ്", "ഗേറ്റും ഡ്രൈവ്‌വേയും", "പൂന്തോട്ടം അല്ലെങ്കിൽ കളിസ്ഥലം", "മറ്റ് പൊതു ഇടം"],
+  OUT: ["മറുപടി ഇല്ല", "സ്വീകരിച്ചു പക്ഷേ പരിഹരിച്ചില്ല", "പരിഹരിക്കാതെ അടച്ചു", "പരിഹരിച്ചു"],
+},
+mr: {
+  _name: "मराठी",
+  title: "सुरक्षा समस्या नोंदवा",
+  start: "समस्या नोंदवा",
+  next: "पुढे",
+  back: "मागे",
+  wa_share: "ही तक्रार सुरक्षा ग्रुपला पाठवा",
+  wa_pick: "तक्रार लिहिलेली असलेले WhatsApp उघडेल. सुरक्षा ग्रुप निवडा आणि पाठवा दाबा. तिथे तुमचे नाव आणि नंबर दिसेल.",
+  n_wa: "तुम्ही स्वतः तक्रार सुरक्षा WhatsApp ग्रुपमध्ये शेअर केल्यास ग्रुपमधील सर्वजण ती तुमच्या नाव आणि नंबरसह पाहतील. शेअर करणे तुमच्या मर्जीवर आहे.",
+  lift_call: "लिफ्ट अडकली? Johnson Lifts ला फोन करा",
+  lift_hint: "ब्रेकडाउन हेल्पलाइन, Johnson Care. लिफ्टमधील पाटीवरचा जॉब नंबर सांगा.",
+  urgent_t: "हे तातडीचे वाटते. आधी मदत मिळवा.",
+  urgent_b: "आत्ताच फोन करा किंवा सुरक्षा ग्रुपला कळवा. मग छोटी तक्रार पाठवा. बाकीचे प्रश्न नंतर.",
+  more: "अधिक तपशील (ऐच्छिक)",
+  emerg: "आत्ता आपत्कालीन स्थिती आहे? आधी 112 वर फोन करा. अग्निशमन 101. रुग्णवाहिका 108.",
+  wa_btn: "सुरक्षा WhatsApp ग्रुपला कळवा",
+  wa_note: "ग्रुपमधील सर्वांना तुमचे नाव आणि नंबर दिसेल.",
+  wa_after: "तातडीचे असल्यास आत्ताच सुरक्षा ग्रुपलाही कळवा.",
+  q_voice: "व्हॉइस नोट",
+  voice_hint: "(ऐच्छिक, जास्तीत जास्त 2 मिनिटे. तुमच्या आवाजावरून तुमची ओळख पटू शकते. टाइप केल्यास तुम्ही निनावी राहता)",
+  rec: "रेकॉर्ड करा",
+  stop: "थांबवा",
+  del: "हटवा",
+  e_mic: "मायक्रोफोन वापरता आला नाही. कृपया टाइप करा.",
+  n_voice: "तुम्ही व्हॉइस नोट रेकॉर्ड केल्यास आम्ही तीही ठेवतो. ती फोटोंसोबतच पुसली जाते.",
+  safe: "आम्ही तुमचे नाव विचारत नाही. संपर्क माहिती ऐच्छिक आहे. ती फक्त डेटा संपर्क व्यक्ती पाहते. तुम्ही तक्रार WhatsApp वर शेअर केल्यास ग्रुपला तुमचे नाव आणि नंबर दिसेल.",
+  childT: "मुले काम करत आहेत किंवा धोक्यात आहेत?",
+  childB: "चाइल्डलाइन 1098 किंवा पोलीस 112 वर फोन करा. तुम्ही नाव गुप्त ठेवू शकता. कृपया मुलांचे फोटो काढू नका किंवा येथे अपलोड करू नका.",
+  q_category: "समस्या काय आहे?", pick_category: "प्रकार निवडा",
+  q_tower: "कुठे?", pick_tower: "टॉवर किंवा जागा निवडा",
+  q_spot: "नेमकी जागा", spot_hint: "(ऐच्छिक, उदा. 12वा मजला लिफ्ट लॉबी, बेसमेंट 2 खांब 40)",
+  q_when: "हे कधी घडले?", optional: "(ऐच्छिक)",
+  q_desc: "काय घडले?", desc_ph: "व्यक्तीचे नाही, समस्येचे वर्णन करा. हे किती वेळा होते तेही लिहा.",
+  q_photos: "फोटो", photo_hint: "(ऐच्छिक, जास्तीत जास्त {n}. अपलोडपूर्वी लोकेशन माहिती काढून टाकली जाते)",
+  q_mygate: "तुम्ही हे आधीच MyGate वर नोंदवले होते का?", yes: "हो", no: "नाही",
+  q_mygate_ref: "MyGate तिकीट क्रमांक", q_mygate_out: "MyGate वर काय झाले?", pick_outcome: "एक निवडा",
+  q_contact: "उत्तरासाठी फोन किंवा ईमेल", contact_hint: "(ऐच्छिक, फक्त डेटा संपर्क व्यक्ती हे पाहते)",
+  notice_summary: "गोपनीयता सूचना (कृपया वाचा)",
+  consent: "मी गोपनीयता सूचना वाचली आहे. सूचनेत सांगितलेल्या उद्देशांसाठी असोसिएशन ही तक्रार आणि तिचे फोटो वापरू शकते, याला माझी संमती आहे.",
+  send: "तक्रार पाठवा", sending: "पाठवत आहे...",
+  done1: "धन्यवाद. तुमची तक्रार नोंदवली गेली आहे.",
+  done2: "हा तिकीट क्रमांक जपून ठेवा. पुढील चौकशी, दुरुस्ती किंवा तक्रार काढून टाकण्यासाठी तो सांगा.",
+  e_place: "कृपया प्रकार आणि जागा निवडा.", e_desc: "कृपया समस्या थोडी अधिक तपशीलात लिहा किंवा व्हॉइस नोट रेकॉर्ड करा.",
+  e_consent: "कृपया गोपनीयता सूचना वाचा आणि बॉक्सवर टिक करा.", e_mygate: "कृपया MyGate प्रश्नाचे उत्तर द्या.",
+  e_photo: "हा फोटो वाचता आला नाही. कृपया दुसरा फोटो वापरून पाहा.", e_photos_max: "फक्त पहिले {n} फोटो ठेवले आहेत.",
+  e_long: "एक उत्तर खूप मोठे आहे.", e_rate: "गेल्या एका तासात खूप तक्रारी आल्या आहेत. कृपया थोड्या वेळाने प्रयत्न करा.",
+  e_generic: "काहीतरी चुकले. कृपया पुन्हा प्रयत्न करा.",
+  n_version: "आवृत्ती {v}.",
+  n_who_h: "आम्ही कोण आहोत", n_who: "हा फॉर्म {society} चालवते. डिजिटल वैयक्तिक डेटा संरक्षण अधिनियम 2023 अंतर्गत असोसिएशन डेटा फिड्युशियरी आहे. संपर्क: {email}.",
+  n_what_h: "आम्ही काय गोळा करतो", n_what: "समस्येचा प्रकार, जागा आणि वेळ. तुमचे वर्णन. जास्तीत जास्त {n} फोटो. तुम्ही हे MyGate वर नोंदवले होते का. फोन नंबर किंवा ईमेल, फक्त तुम्ही द्यायचे ठरवले तर. आम्ही तुमचे नाव विचारत नाही. अपलोडपूर्वी फोटो तुमच्या फोनवरच पुन्हा सेव्ह होतात. यामुळे कॅमेऱ्याने जोडलेले लोकेशन काढले जाते.",
+  n_why_h: "का", n_why: "समस्या नोंदवण्यासाठी, त्या सुटेपर्यंत पाठपुरावा करण्यासाठी आणि रहिवाशांना नाव नसलेली एकूण आकडेवारी सांगण्यासाठी. तुमचा डेटा इतर कशासाठीही वापरला जात नाही.",
+  n_sees_h: "हे कोण पाहते", n_sees: "असोसिएशनने नेमलेल्या रहिवासी मॉनिटरचा एक छोटा गट तक्रारी आणि फोटो पाहतो. ते संपर्क माहिती कधीही पाहत नाहीत. ती फक्त असोसिएशनची डेटा संपर्क व्यक्ती पाहते. डेटा असोसिएशनच्या खात्यात Google Drive आणि Google Sheets मध्ये ठेवला जातो. आम्ही तो कधीही विकत नाही किंवा WhatsApp ग्रुपमध्ये टाकत नाही.",
+  n_long_h: "आम्ही हे किती काळ ठेवतो", n_long: "तिकीट बंद झाल्यानंतर {d} दिवसांनी फोटो, वर्णन आणि संपर्क माहिती पुसली जाते. नाव नसलेली मोजणी ठेवली जाते.",
+  n_rights_h: "तुमचे हक्क", n_rights: "तुम्ही कधीही तुमची संमती मागे घेऊ शकता. तुमची तक्रार पाहण्यासाठी, दुरुस्त करण्यासाठी किंवा पुसण्यासाठीही सांगू शकता. तुमच्या तिकीट क्रमांकासह {email} वर ईमेल करा. संमती मागे घेणे ती देण्याइतकेच सोपे आहे. तुमच्या वतीने काम करण्यासाठी तुम्ही कोणालाही नामनिर्देशित करू शकता. आमच्या उत्तराने समाधान न झाल्यास तुम्ही भारतीय डेटा संरक्षण मंडळाकडे तक्रार करू शकता.",
+  n_others_h: "इतर लोकांबद्दल", n_others: "व्यक्तीचे नाही, समस्येचे वर्णन करा. चेहरे, मुले किंवा कोणाच्याही घराच्या आतील फोटो अपलोड करू नका. लोकांची नावे घेणाऱ्या किंवा त्यांचा अपमान करणाऱ्या तक्रारी आम्ही बदलू किंवा काढून टाकू.",
+  n_lang: "ही सूचना इंग्रजीतही उपलब्ध आहे. भाषांतरात काही अस्पष्ट असल्यास इंग्रजी आवृत्ती लागू होईल.",
+  CAT: ["लिफ्ट अडकली आहे किंवा बंद आहे", "लिफ्टचा अलार्म किंवा इंटरकॉम चालत नाही", "आग, धूर किंवा जळल्याचा वास", "अग्निशमन साहित्य नाही किंवा खराब", "फायर एक्झिट किंवा जिना अडवलेला", "गॅस गळतीचा वास", "विजेचा धोका (उघड्या तारा, ठिणग्या, शॉक)", "बांधकामाचा धोका (भेगा, पडणारे प्लास्टर, तुटलेली रेलिंग)", "पाणी साचणे किंवा विजेजवळ पाणी", "सुरक्षा किंवा संशयास्पद व्यक्ती", "मुलांना धोका (उघडा शाफ्ट, असुरक्षित खेळाचे मैदान)", "इतर सुरक्षा धोका"],
+  AREA: ["टॉवर", "पार्किंग", "क्लबहाऊस", "गेट आणि ड्राइव्हवे", "बाग किंवा खेळाचे मैदान", "इतर कॉमन एरिया"],
+  OUT: ["काहीही उत्तर नाही", "स्वीकारले पण दुरुस्त केले नाही", "दुरुस्त न करता बंद केले", "दुरुस्त झाले"],
+},
+gu: {
+  _name: "ગુજરાતી",
+  title: "સુરક્ષા સમસ્યા જણાવો",
+  start: "સમસ્યા જણાવો",
+  next: "આગળ",
+  back: "પાછળ",
+  wa_share: "આ ફરિયાદ સુરક્ષા ગ્રુપને મોકલો",
+  wa_pick: "ફરિયાદ લખેલી હાલતમાં WhatsApp ખુલશે. સુરક્ષા ગ્રુપ પસંદ કરો અને મોકલો દબાવો. ત્યાં તમારું નામ અને નંબર દેખાશે.",
+  n_wa: "જો તમે જાતે ફરિયાદ સુરક્ષા WhatsApp ગ્રુપમાં શેર કરો, તો ગ્રુપના બધા લોકો તે તમારા નામ અને નંબર સાથે જોશે. શેર કરવું તમારી મરજી છે.",
+  lift_call: "લિફ્ટ અટકી ગઈ? Johnson Lifts ને ફોન કરો",
+  lift_hint: "બ્રેકડાઉન હેલ્પલાઇન, Johnson Care. લિફ્ટની અંદરની પ્લેટ પરનો જોબ નંબર જણાવો.",
+  urgent_t: "આ તાત્કાલિક લાગે છે. પહેલાં મદદ મેળવો.",
+  urgent_b: "અત્યારે ફોન કરો અથવા સુરક્ષા ગ્રુપને જાણ કરો. પછી ટૂંકી ફરિયાદ મોકલો. બાકીના પ્રશ્નો પછી.",
+  more: "વધુ વિગતો (વૈકલ્પિક)",
+  emerg: "અત્યારે ઇમરજન્સી છે? પહેલાં 112 પર ફોન કરો. ફાયર 101. એમ્બ્યુલન્સ 108.",
+  wa_btn: "સુરક્ષા WhatsApp ગ્રુપને જાણ કરો",
+  wa_note: "ગ્રુપમાં બધાને તમારું નામ અને નંબર દેખાશે.",
+  wa_after: "જો તાત્કાલિક હોય, તો અત્યારે સુરક્ષા ગ્રુપને પણ જાણ કરો.",
+  q_voice: "વોઇસ નોટ",
+  voice_hint: "(વૈકલ્પિક, વધુમાં વધુ 2 મિનિટ. તમારા અવાજથી તમારી ઓળખ થઈ શકે છે. ટાઇપ કરવાથી તમે અનામી રહો છો)",
+  rec: "રેકોર્ડ કરો",
+  stop: "રોકો",
+  del: "કાઢી નાખો",
+  e_mic: "માઇક્રોફોન વાપરી શકાયો નથી. કૃપા કરીને ટાઇપ કરો.",
+  n_voice: "જો તમે વોઇસ નોટ રેકોર્ડ કરો, તો અમે તે પણ રાખીએ છીએ. તે ફોટા સાથે જ ભૂંસી નાખવામાં આવે છે.",
+  safe: "અમે તમારું નામ પૂછતા નથી. સંપર્ક માહિતી વૈકલ્પિક છે. તે ફક્ત ડેટા સંપર્ક વ્યક્તિ જ જુએ છે. જો તમે ફરિયાદ WhatsApp પર શેર કરો, તો ગ્રુપને તમારું નામ અને નંબર દેખાશે.",
+  childT: "બાળકો કામ કરે છે કે જોખમમાં છે?",
+  childB: "ચાઇલ્ડલાઇન 1098 અથવા પોલીસ 112 પર ફોન કરો. તમે નામ ગુપ્ત રાખી શકો છો. કૃપા કરીને બાળકોના ફોટા ન પાડો અને અહીં અપલોડ ન કરો.",
+  q_category: "સમસ્યા શું છે?", pick_category: "શ્રેણી પસંદ કરો",
+  q_tower: "ક્યાં?", pick_tower: "ટાવર અથવા જગ્યા પસંદ કરો",
+  q_spot: "ચોક્કસ જગ્યા", spot_hint: "(વૈકલ્પિક, દા.ત. 12મો માળ લિફ્ટ લોબી, બેઝમેન્ટ 2 થાંભલો 40)",
+  q_when: "આ ક્યારે બન્યું?", optional: "(વૈકલ્પિક)",
+  q_desc: "શું થયું?", desc_ph: "વ્યક્તિ નહીં, સમસ્યાનું વર્ણન કરો. આ કેટલી વાર થાય છે તે પણ લખો.",
+  q_photos: "ફોટા", photo_hint: "(વૈકલ્પિક, વધુમાં વધુ {n}. અપલોડ પહેલાં લોકેશન માહિતી દૂર કરવામાં આવે છે)",
+  q_mygate: "શું તમે આ પહેલાં MyGate પર નોંધાવ્યું હતું?", yes: "હા", no: "ના",
+  q_mygate_ref: "MyGate ટિકિટ નંબર", q_mygate_out: "MyGate પર શું થયું?", pick_outcome: "એક પસંદ કરો",
+  q_contact: "જવાબ માટે ફોન અથવા ઇમેઇલ", contact_hint: "(વૈકલ્પિક, ફક્ત ડેટા સંપર્ક વ્યક્તિ જ આ જુએ છે)",
+  notice_summary: "ગોપનીયતા સૂચના (કૃપા કરીને વાંચો)",
+  consent: "મેં ગોપનીયતા સૂચના વાંચી છે. સૂચનામાં જણાવેલા હેતુઓ માટે એસોસિએશન આ ફરિયાદ અને તેના ફોટાનો ઉપયોગ કરી શકે, તે માટે હું સંમત છું.",
+  send: "ફરિયાદ મોકલો", sending: "મોકલી રહ્યા છીએ...",
+  done1: "આભાર. તમારી ફરિયાદ નોંધાઈ ગઈ છે.",
+  done2: "આ ટિકિટ નંબર સાચવી રાખો. આગળ પૂછપરછ, સુધારો અથવા ફરિયાદ દૂર કરાવવા માટે તે જણાવો.",
+  e_place: "કૃપા કરીને શ્રેણી અને જગ્યા પસંદ કરો.", e_desc: "કૃપા કરીને સમસ્યા થોડી વધુ વિગતે લખો અથવા વોઇસ નોટ રેકોર્ડ કરો.",
+  e_consent: "કૃપા કરીને ગોપનીયતા સૂચના વાંચો અને બોક્સમાં ટિક કરો.", e_mygate: "કૃપા કરીને MyGate પ્રશ્નનો જવાબ આપો.",
+  e_photo: "આ ફોટો વાંચી શકાયો નથી. કૃપા કરીને બીજો ફોટો અજમાવો.", e_photos_max: "ફક્ત પહેલા {n} ફોટા રાખવામાં આવ્યા છે.",
+  e_long: "એક જવાબ ખૂબ લાંબો છે.", e_rate: "છેલ્લા એક કલાકમાં ઘણી ફરિયાદો આવી છે. કૃપા કરીને થોડી વાર પછી પ્રયાસ કરો.",
+  e_generic: "કંઈક ખોટું થયું. કૃપા કરીને ફરી પ્રયાસ કરો.",
+  n_version: "આવૃત્તિ {v}.",
+  n_who_h: "અમે કોણ છીએ", n_who: "આ ફોર્મ {society} ચલાવે છે. ડિજિટલ વ્યક્તિગત ડેટા સંરક્ષણ અધિનિયમ 2023 હેઠળ એસોસિએશન ડેટા ફિડ્યુશિયરી છે. સંપર્ક: {email}.",
+  n_what_h: "અમે શું એકત્ર કરીએ છીએ", n_what: "સમસ્યાનો પ્રકાર, જગ્યા અને સમય. તમારું વર્ણન. વધુમાં વધુ {n} ફોટા. તમે આ MyGate પર નોંધાવ્યું હતું કે નહીં. ફોન નંબર અથવા ઇમેઇલ, ફક્ત જો તમે આપવા માંગો તો. અમે તમારું નામ પૂછતા નથી. અપલોડ પહેલાં ફોટા તમારા ફોન પર જ ફરી સેવ થાય છે. આનાથી કેમેરાએ ઉમેરેલું લોકેશન દૂર થાય છે.",
+  n_why_h: "શા માટે", n_why: "સમસ્યાઓ નોંધવા, તે ઉકેલાય ત્યાં સુધી ફોલો અપ કરવા અને રહેવાસીઓ સાથે નામ વગરના કુલ આંકડા શેર કરવા. તમારો ડેટા બીજા કોઈ કામ માટે વપરાતો નથી.",
+  n_sees_h: "કોણ જુએ છે", n_sees: "એસોસિએશને નિમેલા રહેવાસી મોનિટરનું એક નાનું જૂથ ફરિયાદો અને ફોટા જુએ છે. તેઓ સંપર્ક માહિતી ક્યારેય જોતા નથી. તે ફક્ત એસોસિએશનની ડેટા સંપર્ક વ્યક્તિ જુએ છે. ડેટા એસોસિએશનના ખાતામાં Google Drive અને Google Sheets માં રાખવામાં આવે છે. અમે તેને ક્યારેય વેચતા નથી કે WhatsApp ગ્રુપમાં મૂકતા નથી.",
+  n_long_h: "અમે તેને કેટલો સમય રાખીએ છીએ", n_long: "ટિકિટ બંધ થયાના {d} દિવસ પછી ફોટા, વર્ણન અને સંપર્ક માહિતી ભૂંસી નાખવામાં આવે છે. નામ વગરની ગણતરી રાખવામાં આવે છે.",
+  n_rights_h: "તમારા અધિકારો", n_rights: "તમે ગમે ત્યારે તમારી સંમતિ પાછી ખેંચી શકો છો. તમારી ફરિયાદ જોવા, સુધારવા કે ભૂંસવા માટે પણ કહી શકો છો. તમારા ટિકિટ નંબર સાથે {email} પર ઇમેઇલ કરો. સંમતિ પાછી ખેંચવી એ આપવા જેટલું જ સરળ છે. તમારા વતી કામ કરવા માટે તમે કોઈને નામાંકિત કરી શકો છો. અમારા જવાબથી સંતોષ ન થાય તો તમે ભારતના ડેટા સંરક્ષણ બોર્ડમાં ફરિયાદ કરી શકો છો.",
+  n_others_h: "બીજા લોકો વિશે", n_others: "વ્યક્તિ નહીં, સમસ્યાનું વર્ણન કરો. ચહેરા, બાળકો કે કોઈના ઘરની અંદરના ફોટા અપલોડ ન કરો. જે ફરિયાદોમાં લોકોના નામ લેવાયા હોય કે તેમનું અપમાન થયું હોય, તેને અમે સુધારીશું કે દૂર કરીશું.",
+  n_lang: "આ સૂચના અંગ્રેજીમાં પણ ઉપલબ્ધ છે. અનુવાદમાં કંઈ અસ્પષ્ટ હોય તો અંગ્રેજી આવૃત્તિ લાગુ પડશે.",
+  CAT: ["લિફ્ટ અટકી છે અથવા બંધ છે", "લિફ્ટનું એલાર્મ અથવા ઇન્ટરકોમ કામ કરતું નથી", "આગ, ધુમાડો અથવા બળવાની ગંધ", "અગ્નિશામક સાધનો નથી અથવા ખરાબ છે", "ફાયર એક્ઝિટ અથવા દાદર બંધ", "ગેસ લીકની ગંધ", "વીજળીનો ખતરો (ખુલ્લા વાયર, તણખા, શોક)", "માળખાનો ખતરો (તિરાડો, પડતું પ્લાસ્ટર, તૂટેલી રેલિંગ)", "પાણી ભરાવું અથવા વીજળી પાસે પાણી", "સુરક્ષા અથવા શંકાસ્પદ વ્યક્તિ", "બાળકો માટે ખતરો (ખુલ્લો શાફ્ટ, અસુરક્ષિત રમતનું મેદાન)", "અન્ય સુરક્ષા જોખમ"],
+  AREA: ["ટાવર", "પાર્કિંગ", "ક્લબહાઉસ", "ગેટ અને ડ્રાઇવવે", "બગીચો અથવા રમતનું મેદાન", "અન્ય કોમન એરિયા"],
+  OUT: ["કોઈ જવાબ નથી", "સ્વીકાર્યું પણ સુધાર્યું નથી", "સુધાર્યા વગર બંધ કર્યું", "સુધારાઈ ગયું"],
+},
+};
+</script>
+
+<script>
+const CFG = {"society":"Godrej Park Retreat Residents' Welfare Association","email":"napaankur@gmail.com","version":"v1, 14 October 2026","towers":["Tower A","Tower B","Tower C","Tower D","Tower E","Tower F","Tower G","Tower H","Parking","Clubhouse","Gate and driveway","Garden or play area","Other common area"],"categories":["Lift stuck or not working","Lift alarm or intercom not working","Fire, smoke or burning smell","Fire equipment missing or not working","Fire exit or staircase blocked","Gas leak smell","Electrical danger (open wires, sparks, shocks)","Structural danger (cracks, falling plaster, broken railing)","Flooding or water near electrics","Security or suspicious person","Danger to children (open shaft, unsafe play area)","Other safety risk"],"mygateOutcomes":["No response","Acknowledged but not fixed","Closed without a fix","Fixed"],"urgent":["Lift stuck or not working","Fire, smoke or burning smell","Gas leak smell","Electrical danger (open wires, sparks, shocks)","Flooding or water near electrics"],"maxPhotos":3,"retainDays":180,"safetyGroup":"https://chat.whatsapp.com/BgTJMNNCUoG1Ey9GQViZXB","liftHelpline":["08023201400","08023201401","08023201402","08023201403"]};
+const $ = id => document.getElementById(id);
+const STEPS = ['what', 'where', 'details', 'send'];
+const MAX_VOICE_SEC = 120;
+const LIFT_ICON = '<rect x="5" y="2" width="14" height="20" rx="2"/><path d="M9 9l3-3 3 3M9 15l3 3 3-3"/>';
+const ICONS = {
+  'Lift stuck or not working': LIFT_ICON,
+  'Lift alarm or intercom not working': '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>',
+  'Fire, smoke or burning smell': '<path d="M12 2c1 3 4 5 4 9a4 4 0 0 1-8 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 0-8z"/>',
+  'Fire equipment missing or not working': '<rect x="8" y="7" width="8" height="15" rx="3"/><path d="M12 7V4h4M10 4h2"/>',
+  'Fire exit or staircase blocked': '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/>',
+  'Gas leak smell': '<path d="M9.6 4.6A2 2 0 1 1 11 8H2m10.6 11.4A2 2 0 1 0 14 16H2m15.7-8.3A2.5 2.5 0 1 1 19.5 12H2"/>',
+  'Electrical danger (open wires, sparks, shocks)': '<path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>',
+  'Structural danger (cracks, falling plaster, broken railing)': '<path d="M4 21V5l8-3 8 3v16"/><path d="M11 7l2 3-2 3 2 3"/>',
+  'Flooding or water near electrics': '<path d="M12 2.7l5.7 5.6a8 8 0 1 1-11.4 0z"/>',
+  'Security or suspicious person': '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+  'Danger to children (open shaft, unsafe play area)': '<circle cx="12" cy="5" r="2.5"/><path d="M12 8v7M8 11h8M10 22l2-7 2 7"/>',
+};
+const OTHER_ICON = '<circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>';
+const PHONE_ICON = '<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/>';
+const svg = (d, size = 20) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const el = (tag, props = {}, kids = []) => { const n = Object.assign(document.createElement(tag), props); n.append(...kids); return n; };
+
+const state = { screen: 'home', category: '', tower: '' };
+let photos = [], voice = null, voiceType = '', recorder = null, recTimer = null;
+
+const store = {
+  get() { try { return localStorage.getItem('lang'); } catch (e) { return null; } },
+  set(v) { try { localStorage.setItem('lang', v); } catch (e) { /* private mode: language just isn't remembered */ } },
+};
+let L = (() => {
+  const saved = store.get();
+  if (saved && I18N[saved]) return saved;
+  return (navigator.languages || [navigator.language || 'en']).map(l => l.slice(0, 2)).find(l => I18N[l]) || 'en';
+})();
+
+const T = (k, vars = {}) => String((I18N[L][k] ?? I18N.en[k]) || '').replace(/\{(\w+)\}/g, (_, v) => vars[v] ?? '');
+const listLabel = (enList, key, value) => {
+  const i = enList.indexOf(value);
+  return (i >= 0 && I18N[L][key] && I18N[L][key][i]) || value;
+};
+const isUrgent = () => CFG.urgent.includes(state.category);
+const isLift = () => state.category.startsWith('Lift');
+const fmtPhone = n => n.replace(/^(\d{3})(\d{4})(\d{4})$/, '$1 $2 $3');
+
+/* ---------- rendering ---------- */
+function renderLift(box) {
+  const [main, ...alts] = CFG.liftHelpline || [];
+  if (!main) { box.hidden = true; return; }
+  const head = el('div', { className: 'lifthead' });
+  head.innerHTML = `<span class="ic r">${svg(LIFT_ICON)}</span>`;
+  head.append(el('div', {}, [el('div', { className: 'ctitle', textContent: T('lift_call') }),
+    el('div', { className: 'csub', textContent: T('lift_hint') })]));
+  const call = el('a', { className: 'callbtn', href: 'tel:' + main });
+  call.innerHTML = svg(PHONE_ICON, 18);
+  call.append(fmtPhone(main));
+  const more = el('div', { className: 'alts' }, alts.map(n => el('a', { href: 'tel:' + n, textContent: '/' + n.slice(-2) })));
+  box.replaceChildren(head, call, more);
+}
+function renderTiles() {
+  $('catGrid').replaceChildren(...CFG.categories.map(v => {
+    const b = el('button', { type: 'button', className: 'tile' + (CFG.urgent.includes(v) ? ' urg' : '') });
+    b.setAttribute('aria-pressed', String(state.category === v));
+    b.innerHTML = `<span class="ic${CFG.urgent.includes(v) ? ' r' : ''}">${svg(ICONS[v] || OTHER_ICON)}</span>`;
+    b.append(listLabel(EN_CAT, 'CAT', v));
+    b.onclick = () => { state.category = v; renderTiles(); onCategory(); go('where'); };
+    return b;
+  }));
+}
+function renderPlaces() {
+  const pick = v => () => { state.tower = v; renderPlaces(); $('err').textContent = ''; };
+  const towerWord = listLabel(EN_AREA, 'AREA', 'Tower');
+  $('towerGrid').replaceChildren(...CFG.towers.filter(v => v.startsWith('Tower ')).map(v => {
+    const b = el('button', { type: 'button', className: 'tower', onclick: pick(v) },
+      [el('small', { textContent: towerWord }), el('span', { textContent: v.slice(6) })]);
+    b.setAttribute('aria-pressed', String(state.tower === v));
+    return b;
+  }));
+  $('areaList').replaceChildren(...CFG.towers.filter(v => !v.startsWith('Tower ')).map(v => {
+    const b = el('button', { type: 'button', className: 'area', onclick: pick(v), textContent: listLabel(EN_AREA, 'AREA', v) });
+    b.setAttribute('aria-pressed', String(state.tower === v));
+    return b;
+  }));
+}
+function renderNotice() {
+  const vars = { society: CFG.society, email: CFG.email, n: CFG.maxPhotos, d: CFG.retainDays, v: CFG.version };
+  const parts = [['', 'n_version'], ['n_who_h', 'n_who'], ['n_what_h', 'n_what', 'n_voice'], ['n_why_h', 'n_why'],
+    ['n_sees_h', 'n_sees', 'n_wa'], ['n_long_h', 'n_long'], ['n_rights_h', 'n_rights'], ['n_others_h', 'n_others'], ['', 'n_lang']];
+  const nodes = [];
+  parts.forEach(([h, ...ps]) => {
+    if (h) nodes.push(el('h3', { textContent: T(h) }));
+    const text = ps.map(k => T(k, vars)).filter(Boolean).join(' ');
+    if (text) nodes.push(el('p', { textContent: text }));
+  });
+  $('notice').replaceChildren(...nodes);
+}
+function render() {
+  document.documentElement.lang = L;
+  document.querySelectorAll('[data-i]').forEach(n => { n.textContent = T(n.dataset.i); });
+  document.querySelectorAll('[data-ph]').forEach(n => { n.placeholder = T(n.dataset.ph); });
+  document.querySelectorAll('[data-lift]').forEach(renderLift);
+  $('org').textContent = CFG.society;
+  $('photoHint').textContent = T('photo_hint', { n: CFG.maxPhotos });
+  $('recLabel').textContent = recorder ? T('stop') : T('q_voice');
+  $('backBtn').setAttribute('aria-label', T('back'));
+  const keep = $('mygateOutcome').value;
+  $('mygateOutcome').replaceChildren(new Option(T('pick_outcome'), ''),
+    ...CFG.mygateOutcomes.map(v => new Option(listLabel(EN_OUT, 'OUT', v), v)));
+  $('mygateOutcome').value = keep;
+  renderTiles(); renderPlaces(); renderNotice(); onCategory(); updateBar();
+}
+
+/* ---------- navigation ---------- */
+function updateBar() {
+  const i = STEPS.indexOf(state.screen);
+  $('steps').hidden = i < 0;
+  document.querySelectorAll('#steps span').forEach((s, k) => { s.className = k === i ? 'on' : k < i ? 'done' : ''; });
+  $('backBtn').hidden = i < 0;
+  $('bar').hidden = i < 1; // step 1 moves on when a tile is tapped
+  $('nextBtn').textContent = state.screen === 'send' ? T('send') : T('next');
+}
+function go(screen) {
+  state.screen = screen;
+  document.querySelectorAll('[data-screen]').forEach(s => { s.hidden = s.dataset.screen !== screen; });
+  $('err').textContent = '';
+  updateBar();
+  window.scrollTo(0, 0);
+}
+function back() {
+  const i = STEPS.indexOf(state.screen);
+  go(i <= 0 ? 'home' : STEPS[i - 1]);
+}
+function onCategory() {
+  // Urgent: help first, optional questions fold away. Lift: the Johnson Lifts line is one tap away.
+  $('urgentBox').hidden = !isUrgent();
+  $('liftUrgent').hidden = !isLift();
+  $('more').open = !isUrgent();
+}
+$('startBtn').onclick = () => go('what');
+$('backBtn').onclick = back;
+$('lang').replaceChildren(...Object.entries(I18N).map(([code, t]) => new Option(t._name, code)));
+$('lang').value = L;
+$('lang').onchange = e => { L = e.target.value; store.set(L); render(); };
+document.querySelectorAll('[data-wa]').forEach(a => {
+  if (/^https:\/\/chat\.whatsapp\.com\//.test(CFG.safetyGroup)) a.href = CFG.safetyGroup; else a.hidden = true;
+});
+document.querySelectorAll('input[name=mygate]').forEach(r => r.addEventListener('change', () => {
+  $('mygateMore').hidden = !$('mgYes').checked;
+}));
+
+/* ---------- photos: canvas re-draw drops EXIF, including GPS ---------- */
+function toJpegBase64(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, 1600 / Math.max(img.naturalWidth, img.naturalHeight));
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.naturalWidth * scale);
+      c.height = Math.round(img.naturalHeight * scale);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      resolve(c.toDataURL('image/jpeg', 0.8).split(',')[1]);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('e_photo')); };
+    img.src = url;
+  });
+}
+$('photos').addEventListener('change', async e => {
+  $('err').textContent = '';
+  const files = [...e.target.files].slice(0, CFG.maxPhotos);
+  if (e.target.files.length > CFG.maxPhotos) $('err').textContent = T('e_photos_max', { n: CFG.maxPhotos });
+  try {
+    photos = await Promise.all(files.map(toJpegBase64));
+  } catch (x) {
+    photos = [];
+    e.target.value = '';
+    $('err').textContent = T('e_photo');
+  }
+  $('thumbs').replaceChildren(...photos.map(b64 => el('img', { src: 'data:image/jpeg;base64,' + b64, alt: '' })));
+});
+
+/* ---------- voice note: MediaRecorder, two minutes max ---------- */
+if (!window.MediaRecorder || !navigator.mediaDevices) { $('recBtn').hidden = true; $('voiceHint').hidden = true; }
+const blobToBase64 = blob => new Promise(res => {
+  const r = new FileReader();
+  r.onload = () => res(String(r.result).split(',')[1]);
+  r.readAsDataURL(blob);
+});
+function stopRecording() { if (recorder && recorder.state !== 'inactive') recorder.stop(); }
+$('recBtn').addEventListener('click', async () => {
+  if (recorder) return stopRecording();
+  $('err').textContent = '';
+  let stream;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch (e) {
+    $('err').textContent = T('e_mic');
+    return;
+  }
+  const type = ['audio/webm;codecs=opus', 'audio/mp4', 'audio/ogg'].find(t => MediaRecorder.isTypeSupported(t)) || '';
+  recorder = new MediaRecorder(stream, type ? { mimeType: type, audioBitsPerSecond: 32000 } : {});
+  const chunks = [];
+  const started = Date.now();
+  recorder.ondataavailable = e => chunks.push(e.data);
+  recorder.onstop = async () => {
+    stream.getTracks().forEach(t => t.stop());
+    clearInterval(recTimer);
+    const blob = new Blob(chunks, { type: recorder.mimeType });
+    voiceType = recorder.mimeType.split(';')[0];
+    voice = await blobToBase64(blob);
+    recorder = null;
+    $('player').src = URL.createObjectURL(blob);
+    $('voiceBar').hidden = false;
+    $('timer').hidden = true;
+    $('recBtn').classList.remove('live');
+    $('recLabel').textContent = T('q_voice');
+  };
+  recorder.start();
+  $('recBtn').classList.add('live');
+  $('recLabel').textContent = T('stop');
+  $('timer').hidden = false;
+  recTimer = setInterval(() => {
+    const s = Math.floor((Date.now() - started) / 1000);
+    $('timer').textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+    if (s >= MAX_VOICE_SEC) stopRecording();
+  }, 250);
+});
+$('delVoice').onclick = () => {
+  voice = null; voiceType = '';
+  $('voiceBar').hidden = true; $('player').removeAttribute('src');
+};
+
+/* ---------- next / send ---------- */
+function collect() {
+  const mg = document.querySelector('input[name=mygate]:checked');
+  return {
+    category: state.category, tower: state.tower, spot: $('spot').value, when: $('when').value,
+    description: $('description').value, contact: $('contact').value, website: $('website').value,
+    consent: $('consent').checked, photos, voice, voiceType, lang: L,
+    mygate: mg ? mg.value : '', mygateRef: $('mygateRef').value, mygateOutcome: $('mygateOutcome').value,
+  };
+}
+// Plain English for the group, whatever language the form was in. No contact details.
+function groupMessage(ticket, f) {
+  return ['SAFETY ALERT ' + ticket, f.category, [f.tower, f.spot.trim()].filter(Boolean).join(', '),
+    f.description.trim() || (f.voice ? '(voice note with the ticket)' : '(photo with the ticket)'),
+    'Sent from the ' + CFG.society + ' safety form'].join('\n');
+}
+function submit() {
+  const form = collect();
+  if (form.mygate === 'Yes' && !form.mygateOutcome) return void ($('err').textContent = T('e_mygate'));
+  if (!form.consent) return void ($('err').textContent = T('e_consent'));
+  $('nextBtn').disabled = true;
+  $('nextBtn').textContent = T('sending');
+  google.script.run
+    .withSuccessHandler(res => {
+      $('ticket').textContent = res.ticket;
+      $('waShare').href = 'https://wa.me/?text=' + encodeURIComponent(groupMessage(res.ticket, form));
+      go('done');
+    })
+    .withFailureHandler(x => {
+      $('nextBtn').disabled = false;
+      $('nextBtn').textContent = T('send');
+      const key = x && x.message && x.message.replace(/^Error:\s*/, '');
+      $('err').textContent = key && key in I18N.en ? T(key) : T('e_generic');
+    })
+    .submit(form);
+}
+$('nextBtn').onclick = () => {
+  if (state.screen === 'where') {
+    if (!state.tower) return void ($('err').textContent = T('e_place'));
+    return go('details');
+  }
+  if (state.screen === 'details') {
+    if (recorder) return stopRecording(); // finish the note first
+    if (!voice && !photos.length && $('description').value.trim().length < 15) return void ($('err').textContent = T('e_desc'));
+    return go('send');
+  }
+  if (state.screen === 'send') submit();
+};
+
+render();
+</script>
+</body>
+</html>
