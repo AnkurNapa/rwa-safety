@@ -685,7 +685,7 @@ function copyFallback(text) {
   try { document.execCommand('copy'); } catch (e) { /* nothing more we can do; the share sheet carries the text anyway */ }
   t.remove();
 }
-// Urgent alert for the group, in plain English: what, where, and that someone may need help right now.
+// Urgent alert for the group in plain English: what, where, who may need help now.
 function alertMessage() {
   const where = [state.tower, $('spot').value.trim()].filter(Boolean).join(', ') || 'Location not chosen yet';
   const ask = state.category.startsWith('Lift stuck') ? 'Someone may be stuck inside. Please help now.' : 'Please help now.';
