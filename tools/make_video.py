@@ -30,10 +30,9 @@ CAPTIONS = [
     ('lang', 'Works in 11 languages', 'English, Hindi, Kannada, Odia and more'),
     ('report', 'Pick what is wrong', 'Lifts, fire, gas, wiring, cracks, security'),
     ('urgent', 'Lift stuck? Help first', 'Call buttons come before any questions'),
-    ('where', 'Tap the tower', 'No login. No name needed.'),
-    ('details', 'Say what happened', 'Type it, record a voice note or add a photo'),
-    ('send', 'Logged in seconds', 'Saved to the safety log with a ticket'),
-    ('done', 'Share it with the safety group', 'One tap opens WhatsApp with the report'),
+    ('where', 'Tap your tower', 'The app remembers it for next time'),
+    ('send', 'Details are optional', 'We take your number to call you back'),
+    ('done', 'Logged with a ticket', 'Share it with the safety group in one tap'),
     ('end', 'Look for the QR in your lift', "A residents' initiative. Not an official society app."),
 ]
 
@@ -81,25 +80,18 @@ def walkthrough(page, mark):
     page.wait_for_timeout(3000)
     mark('where')
     page.locator('#towerGrid').evaluate("el => el.scrollIntoView({behavior: 'smooth', block: 'center'})")
-    page.wait_for_timeout(1100)
-    page.click('.tower >> nth=2')
-    page.wait_for_timeout(500)
-    page.click('#spot')
-    page.keyboard.type('Lift 2, between floors 9 and 10', delay=55)
-    page.wait_for_timeout(500)
-    page.click('#nextBtn')
-    mark('details')
-    page.wait_for_timeout(600)
-    page.click('#description')
-    page.keyboard.type('Stuck in lift 2 with my son. Alarm button gets no answer from the gate.', delay=28)
-    page.wait_for_timeout(800)
-    page.click('#nextBtn')
-    mark('send')
-    page.wait_for_timeout(1000)
-    page.click('.consent')
+    page.wait_for_timeout(1300)
+    page.click('.tower >> nth=2')  # tapping the tower moves straight on
     page.wait_for_timeout(700)
-    page.click('#nextBtn')
-    page.wait_for_timeout(600)
+    mark('send')
+    page.click('#description')
+    page.keyboard.type('Stuck in lift 2 with my son. Alarm gets no answer.', delay=28)
+    page.wait_for_timeout(500)
+    page.click('#contact')
+    page.keyboard.type('98450 12345', delay=70)
+    page.wait_for_timeout(700)
+    page.click('#nextBtn')  # Agree and send
+    page.wait_for_timeout(700)
     mark('done')
     page.wait_for_timeout(1200)
     page.hover('#waShare')

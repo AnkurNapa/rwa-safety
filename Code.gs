@@ -33,7 +33,7 @@ const CONFIG = {
 
 const SHARED_HEADERS = ['Ticket ID', 'Submitted at', 'Category', 'Tower or area', 'Exact spot',
   'When it happened', 'Description', 'Photos and voice note', 'Raised on MyGate', 'MyGate ticket', 'MyGate outcome'];
-const RAW_HEADERS = [...SHARED_HEADERS, 'Contact (optional)', 'Notice version', 'Notice language'];
+const RAW_HEADERS = [...SHARED_HEADERS, 'Phone', 'Notice version', 'Notice language'];
 const TRIAGE_HEADERS = [...SHARED_HEADERS, 'Status', 'Action note', 'Last updated'];
 const COL = { DESCRIPTION: 7, PHOTOS: 8, CONTACT: 12, STATUS: 12, ACTION: 13, LAST_UPDATED: 14 };
 
@@ -89,7 +89,7 @@ function submit(form) {
     const shared = [ticket, now, form.category, form.tower, cell_(form.spot), cell_(form.when),
       cell_(form.description), saveMedia_(ticket, form.photos || [], form.voice, form.voiceType), form.mygate || 'Not answered',
       form.mygate === 'Yes' ? cell_(form.mygateRef) : '', form.mygate === 'Yes' ? form.mygateOutcome : ''];
-    book_('PRIVATE_ID').getSheetByName('Raw').appendRow([...shared, cell_(form.contact), CONFIG.NOTICE_VERSION,
+    book_('PRIVATE_ID').getSheetByName('Raw').appendRow([...shared, normPhone_(form.contact), CONFIG.NOTICE_VERSION,
       CONFIG.LANGS.includes(form.lang) ? form.lang : 'en']);
     book_('MONITOR_ID').getSheetByName('Triage').appendRow([...shared, 'New', '', now]);
     if (CONFIG.URGENT.includes(form.category)) alertUrgent_(ticket, form);
@@ -102,6 +102,7 @@ function submit(form) {
 function validate_(f) {
   if (!f || f.consent !== true) return 'e_consent';
   if (!CONFIG.CATEGORIES.includes(f.category) || !CONFIG.TOWERS.includes(f.tower)) return 'e_place';
+  if (!normPhone_(f.contact)) return 'e_phone'; // required: the form says so up front
   if (!['Yes', 'No', '', undefined].includes(f.mygate)) return 'e_mygate'; // optional: nobody stuck in a lift answers this
   if (f.mygate === 'Yes' && !CONFIG.MYGATE_OUTCOMES.includes(f.mygateOutcome)) return 'e_mygate';
   const hasVoice = Boolean(f.voice);
@@ -109,8 +110,10 @@ function validate_(f) {
       f.voice.length > CONFIG.MAX_VOICE_CHARS || !/^[A-Za-z0-9+/=]+$/.test(f.voice))) return 'e_generic';
   const d = String(f.description || '').trim();
   const hasPhoto = Array.isArray(f.photos) && f.photos.length > 0;
-  if (d.length > 2000 || (!hasVoice && !hasPhoto && d.length < 15)) return 'e_desc';
-  if (String(f.spot || '').length > 200 || String(f.when || '').length > 50 || String(f.contact || '').length > 200 ||
+  // Category plus tower is enough to act on. Only 'Other safety risk' needs a word, a voice note or a photo.
+  const needsDetail = f.category === 'Other safety risk' && !hasVoice && !hasPhoto && d.length < 3;
+  if (d.length > 2000 || needsDetail) return 'e_desc';
+  if (String(f.spot || '').length > 200 || String(f.when || '').length > 50 || String(f.contact || '').length > 40 ||
       String(f.mygateRef || '').length > 40) {
     return 'e_long';
   }
@@ -131,6 +134,12 @@ function alertUrgent_(ticket, form) {
   } catch (e) {
     console.error('Urgent email failed for ' + ticket + ': ' + e);
   }
+}
+
+/** Indian mobile number as 10 digits, or '' if it is not one. Accepts +91, 91 or 0 in front, spaces and dashes. */
+function normPhone_(v) {
+  const digits = String(v || '').replace(/[\s()-]/g, '').replace(/^(\+?91|0)(?=\d{10}$)/, '');
+  return /^[6-9]\d{9}$/.test(digits) ? digits : '';
 }
 
 /** Stops typed text being run as a spreadsheet formula. */
@@ -258,23 +267,30 @@ function eraseTicket_(ticket, note) {
 /** Run from the editor after any change to validate_ or cell_. */
 function selfTest() {
   const ok = { consent: true, category: CONFIG.CATEGORIES[0], tower: CONFIG.TOWERS[0],
-    description: 'Lift 3 alarm button gets no answer', photos: [], mygate: 'No' };
+    description: 'Lift 3 alarm button gets no answer', photos: [], mygate: 'No', contact: '98450 12345' };
   const check = (cond, msg) => { if (!cond) throw new Error('selfTest failed: ' + msg); };
   check(validate_(ok) === '', 'valid report rejected');
   check(validate_({ ...ok, photos: ['/9j/4AAQSkZJRg=='] }) === '', 'valid photo rejected');
   check(validate_({ ...ok, consent: false }) !== '', 'missing consent accepted');
   check(validate_({ ...ok, category: 'Hack' }) !== '', 'unknown category accepted');
-  check(validate_({ ...ok, description: 'short' }) !== '', 'short description accepted');
+  check(validate_({ ...ok, description: 'short' }) === '', 'short description rejected');
   check(validate_({ ...ok, photos: ['/9j/', '/9j/', '/9j/', '/9j/'] }) !== '', 'too many photos accepted');
   check(validate_({ ...ok, photos: ['PHNjcmlwdD4='] }) !== '', 'non-JPEG accepted');
   check(validate_({ ...ok, description: '', voice: 'GkXfo0', voiceType: 'audio/webm' }) === '', 'voice-only report rejected');
   check(validate_({ ...ok, description: '', voice: 'GkXfo0', voiceType: 'text/html' }) !== '', 'bad voice type accepted');
-  check(validate_({ ...ok, description: '' }) === 'e_desc', 'empty report accepted');
+  check(validate_({ ...ok, description: '' }) === '', 'category plus tower rejected');
+  check(validate_({ ...ok, category: 'Other safety risk', description: '' }) === 'e_desc', 'empty Other report accepted');
+  check(validate_({ ...ok, category: 'Other safety risk', description: 'Loose tile' }) === '', 'short Other report rejected');
   check(validate_({ ...ok, category: 'Noise' }) === 'e_place', 'non-safety category accepted');
   check(validate_({ ...ok, mygate: '' }) === '', 'unanswered MyGate blocked an urgent report');
   check(validate_({ ...ok, description: '', photos: ['/9j/4AAQ'] }) === '', 'photo-only report rejected');
   check(validate_({ ...ok, mygate: 'Yes' }) !== '', 'MyGate Yes without outcome accepted');
   check(validate_({ ...ok, mygate: 'Yes', mygateOutcome: 'No response', mygateRef: '12345' }) === '', 'valid MyGate rejected');
+  check(validate_({ ...ok, contact: '' }) === 'e_phone', 'missing phone accepted');
+  check(validate_({ ...ok, contact: '12345' }) === 'e_phone', 'short phone accepted');
+  check(normPhone_('+91 98450-12345') === '9845012345', '+91 phone not normalised');
+  check(normPhone_('09845012345') === '9845012345', 'leading 0 phone not normalised');
+  check(normPhone_('1845012345') === '', 'non-mobile number accepted');
   check(cell_('=IMPORTXML("x")') === "'=IMPORTXML(\"x\")", 'formula not neutralised');
   check(cell_('plain text') === 'plain text', 'plain text changed');
   Logger.log('selfTest passed');

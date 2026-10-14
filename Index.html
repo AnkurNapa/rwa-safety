@@ -133,7 +133,7 @@
   .field { margin-top: 16px; }
   .q { display: block; font-size: 13.5px; font-weight: 600; margin-bottom: 6px; }
   .hint { font-weight: 400; font-size: 11.5px; color: var(--ink-faint); }
-  input[type=text], input[type=datetime-local], textarea, select {
+  input[type=text], input[type=tel], input[type=datetime-local], textarea, select {
     width: 100%; font: 16px 'Archivo', sans-serif; color: var(--ink); background: var(--surface);
     border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; outline: none; transition: border-color .2s, box-shadow .2s; }
   textarea { min-height: 130px; resize: vertical; }
@@ -172,9 +172,6 @@
   details[open] summary::after { content: "\2212"; }
   details h3 { font-size: 12.5px; font-weight: 600; margin: 14px 0 3px; }
   details p { font-size: 12.5px; color: var(--ink-dim); }
-  .consent { display: flex; gap: 12px; align-items: flex-start; font-size: 13px; cursor: pointer; }
-  .consent input { width: 20px; height: 20px; margin-top: 1px; flex: none; accent-color: var(--copper); }
-  .card:has(.consent input:checked) { border-color: var(--copper); }
 
   /* bottom action bar */
   .bar { position: sticky; bottom: 0; z-index: 30; padding: 10px 16px calc(12px + env(safe-area-inset-bottom));
@@ -206,10 +203,25 @@
   .ct.hero .ic { background: rgba(255,255,255,.18); color: #fff; }
   .ct.hero small { color: rgba(255,255,255,.9); font-size: 13px; }
   .ct.hero b { color: #fff; font-size: 26px; }
-  .swipe { display: flex; flex-direction: column; align-items: center; gap: 2px; width: 100%; padding: 6px 0 14px;
-    font-size: 12px; color: var(--ink-faint); }
-  .swipe svg { animation: nudge 1.6s var(--ease) infinite; }
-  @keyframes nudge { 50% { transform: translateY(-4px); } }
+  .linkbtn { color: var(--copper-hi); font-weight: 600; font-size: 13px; text-decoration: underline; text-underline-offset: 3px; }
+  .linkbtn.about { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 10px 0 2px; text-decoration: none; }
+  .linkbtn.again { display: block; margin: 16px auto 0; }
+  .disc.center { justify-content: center; text-align: center; margin-top: 6px; }
+  .phoneup { display: flex; gap: 8px; align-items: flex-start; font-size: 12.5px; color: var(--copper-hi); background: var(--copper-soft);
+    border-radius: var(--r); padding: 10px 12px; margin-top: 4px; }
+  .phoneup svg { flex: none; margin-top: 2px; }
+  .noticeline { font-size: 12.5px; color: var(--ink-dim); margin-top: 14px; }
+  dialog.sheet { margin: auto auto 0; width: 100%; max-width: 520px; max-height: 86vh; overflow-y: auto; border: 0;
+    border-radius: 18px 18px 0 0; padding: 10px 18px calc(22px + env(safe-area-inset-bottom)); background: var(--bg);
+    box-shadow: 0 -10px 40px rgba(25,32,40,.18); }
+  dialog.sheet[open] { animation: up .28s var(--ease); }
+  @keyframes up { from { transform: translateY(40px); opacity: 0; } }
+  dialog.sheet::backdrop { background: rgba(25,32,40,.35); }
+  .grab { width: 40px; height: 4px; border-radius: 4px; background: var(--line); margin: 0 auto 10px; }
+  .sheet .close { position: sticky; top: 0; float: right; margin-left: 8px; }
+  .sheet h2 { margin-top: 6px; }
+  .sheet h3 { font-size: 12.5px; font-weight: 600; margin: 14px 0 3px; }
+  .sheet #notice p { font-size: 12.5px; color: var(--ink-dim); }
   .hp { position: absolute; left: -9999px; }
   [hidden] { display: none !important; }
   :focus-visible { outline: 2px solid var(--copper); outline-offset: 2px; }
@@ -228,24 +240,19 @@
       <select id="lang" aria-label="Language"></select>
     </label>
   </header>
-  <nav class="tabs" id="steps" hidden><span>01</span><span>02</span><span>03</span><span>04</span></nav>
+  <nav class="tabs" id="steps" hidden><span>01</span><span>02</span><span>03</span></nav>
 
   <main>
-    <!-- HOME: emergency contacts first, highlights below -->
+    <!-- HOME: emergency contacts, then one Report button -->
     <section class="screen" data-screen="home">
       <div class="emhead"><span class="alabel">SOS</span><span class="ctitle" data-i="em_title"></span></div>
       <div class="contacts" id="contacts"></div>
       <div class="card" data-lift></div>
-      <button class="swipe" type="button" id="swipeHint">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg>
-        <span data-i="swipe"></span></button>
-      <div id="highlights">
-        <div class="card hero"><h2 data-i="title"></h2><p class="csub" data-i="safe"></p></div>
-        <a class="ghost-wa" target="_blank" rel="noopener" data-wa><span data-i="wa_btn"></span></a>
-        <p class="note" data-i="wa_note"></p>
-        <div class="card notice-amber" style="margin-top:14px"><b data-i="childT"></b> <span data-i="childB"></span></div>
-        <p class="disc"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg><span data-i="disc"></span></p>
-      </div>
+      <p class="phoneup"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg><span data-i="phone_note"></span></p>
+      <button class="linkbtn about" type="button" id="aboutBtn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        <span data-i="about"></span></button>
+      <p class="disc center"><span data-i="disc"></span></p>
     </section>
 
     <!-- STEP 1: WHAT -->
@@ -268,16 +275,12 @@
       <h2 data-i="q_tower"></h2>
       <div class="towers" id="towerGrid"></div>
       <div class="areas" id="areaList"></div>
-      <div class="field">
-        <label class="q" for="spot"><span data-i="q_spot"></span> <span class="hint" data-i="spot_hint"></span></label>
-        <input type="text" id="spot" maxlength="200">
-      </div>
     </section>
 
-    <!-- STEP 3: DETAILS -->
-    <section class="screen" data-screen="details" hidden>
+    <!-- STEP 3: DETAILS AND SEND (one screen) -->
+    <section class="screen" data-screen="send" hidden>
       <h2 data-i="q_desc"></h2>
-      <textarea id="description" maxlength="2000" data-ph="desc_ph"></textarea>
+      <textarea id="description" maxlength="2000" data-ph="desc_ph2"></textarea>
       <div class="media">
         <button type="button" class="mbtn" id="recBtn"><span class="dot"></span><span id="recLabel"></span><span class="timer" id="timer" hidden></span></button>
         <label class="mbtn"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
@@ -290,13 +293,17 @@
       <div class="thumbs" id="thumbs"></div>
       <p class="mhint" id="voiceHint" data-i="voice_hint"></p>
       <p class="mhint" id="photoHint"></p>
-    </section>
-
-    <!-- STEP 4: SEND -->
-    <section class="screen" data-screen="send" hidden>
-      <h2 data-i="send"></h2>
-      <details class="card" id="more" open>
+      <div class="field">
+        <label class="q" for="contact" data-i="q_phone"></label>
+        <input type="tel" id="contact" maxlength="20" inputmode="tel" autocomplete="tel" placeholder="98XXX XXXXX">
+        <p class="mhint" data-i="phone_note"></p>
+      </div>
+      <details class="card" id="more">
         <summary data-i="more"></summary>
+        <div class="field">
+        <label class="q" for="spot"><span data-i="q_spot"></span> <span class="hint" data-i="spot_hint"></span></label>
+        <input type="text" id="spot" maxlength="200">
+        </div>
         <div class="field">
           <label class="q" for="when"><span data-i="q_when"></span> <span class="hint" data-i="optional"></span></label>
           <input type="datetime-local" id="when">
@@ -318,21 +325,12 @@
             </div>
           </div>
         </div>
-        <div class="field">
-          <label class="q" for="contact"><span data-i="q_contact"></span> <span class="hint" data-i="contact_hint"></span></label>
-          <input type="text" id="contact" maxlength="200" autocomplete="off">
-        </div>
       </details>
-      <details class="card"><summary data-i="notice_summary"></summary><div id="notice"></div></details>
-      <div class="card">
-        <label class="consent"><input type="checkbox" id="consent"><span data-i="consent"></span></label>
-      </div>
-      <p class="csub" data-i="safe"></p>
-      <p class="disc"><span data-i="disc"></span></p>
+      <p class="noticeline"><span data-i="notice_short"></span> <button class="linkbtn" type="button" id="noticeBtn" data-i="notice_link"></button></p>
       <input type="text" id="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
     </section>
 
-    <!-- DONE -->
+
     <section class="screen done" data-screen="done" hidden>
       <div class="card">
         <div class="live"><span class="dotlive"></span><span data-i="done1"></span></div>
@@ -341,9 +339,26 @@
         <p class="csub" data-i="done2"></p>
         <a class="wa" id="waShare" target="_blank" rel="noopener"><span data-i="wa_share"></span></a>
         <p class="note" data-i="wa_pick"></p>
+        <button class="linkbtn again" type="button" id="againBtn" data-i="again"></button>
       </div>
     </section>
   </main>
+
+  <!-- bottom sheet for About and the privacy notice -->
+  <dialog class="sheet" id="sheet">
+    <div class="grab"></div>
+    <button class="iconbtn close" type="button" id="sheetClose" aria-label="Close">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    <div id="aboutBody" hidden>
+      <h2 data-i="title"></h2>
+      <p class="csub" data-i="safe"></p>
+      <a class="ghost-wa" target="_blank" rel="noopener" data-wa><span data-i="wa_btn"></span></a>
+      <p class="note" data-i="wa_note"></p>
+      <div class="card notice-amber" style="margin-top:14px"><b data-i="childT"></b> <span data-i="childB"></span></div>
+      <p class="disc"><span data-i="disc"></span></p>
+    </div>
+    <div id="noticeBody" hidden><h2 data-i="notice_link"></h2><div id="notice"></div></div>
+  </dialog>
 
   <footer class="bar" id="bar" hidden>
     <div class="error" id="err" role="alert"></div>
@@ -355,7 +370,7 @@
 <script>
 const CFG = <?!= JSON.stringify(cfg) ?>;
 const $ = id => document.getElementById(id);
-const STEPS = ['what', 'where', 'details', 'send'];
+const STEPS = ['what', 'where', 'send'];
 const MAX_VOICE_SEC = 120;
 const LIFT_ICON = '<rect x="5" y="2" width="14" height="20" rx="2"/><path d="M9 9l3-3 3 3M9 15l3 3 3-3"/>';
 const ICONS = {
@@ -376,15 +391,23 @@ const PHONE_ICON = '<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 
 const svg = (d, size = 20) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 const el = (tag, props = {}, kids = []) => { const n = Object.assign(document.createElement(tag), props); n.append(...kids); return n; };
 
+// The last tower is remembered and highlighted, but the resident still taps it: nothing is sent silently.
 const state = { screen: 'home', category: '', tower: '' };
 let photos = [], voice = null, voiceType = '', recorder = null, recTimer = null;
 
-const store = {
-  get() { try { return localStorage.getItem('lang'); } catch (e) { return null; } },
-  set(v) { try { localStorage.setItem('lang', v); } catch (e) { /* private mode: language just isn't remembered */ } },
+// Per-phone conveniences only. Storage can be blocked (private mode), so every call is guarded.
+const local = {
+  get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* not remembered, nothing breaks */ } },
 };
+const draft = {  // text only, this tab only: survives a reload in a weak-signal lift, gone after sending
+  save(d) { try { sessionStorage.setItem('draft', JSON.stringify(d)); } catch (e) { /* no draft kept */ } },
+  load() { try { return JSON.parse(sessionStorage.getItem('draft') || 'null'); } catch (e) { return null; } },
+  clear() { try { sessionStorage.removeItem('draft'); } catch (e) { /* nothing to clear */ } },
+};
+const buzz = () => { try { if (navigator.vibrate) navigator.vibrate(8); } catch (e) { /* no haptics */ } };
 let L = (() => {
-  const saved = store.get();
+  const saved = local.get('lang');
   if (saved && I18N[saved]) return saved;
   return (navigator.languages || [navigator.language || 'en']).map(l => l.slice(0, 2)).find(l => I18N[l]) || 'en';
 })();
@@ -435,22 +458,26 @@ function renderTiles() {
     b.setAttribute('aria-pressed', String(state.category === v));
     b.innerHTML = `<span class="ic${CFG.urgent.includes(v) ? ' r' : ''}">${svg(ICONS[v] || OTHER_ICON)}</span>`;
     b.append(listLabel(EN_CAT, 'CAT', v));
-    b.onclick = () => { state.category = v; renderTiles(); onCategory(); go('where'); };
+    b.onclick = () => { buzz(); state.category = v; renderTiles(); onCategory(); keepDraft(); go('where'); };
     return b;
   }));
 }
 function renderPlaces() {
-  const pick = v => () => { state.tower = v; renderPlaces(); $('err').textContent = ''; };
+  const pick = v => () => {
+    buzz(); state.tower = v; local.set('tower', v); renderPlaces(); keepDraft();
+    setTimeout(() => go('send'), 160); // tap moves on, the short pause shows the choice
+  };
+  const marked = v => (state.tower || local.get('tower')) === v;
   const towerWord = listLabel(EN_AREA, 'AREA', 'Tower');
   $('towerGrid').replaceChildren(...CFG.towers.filter(v => v.startsWith('Tower ')).map(v => {
     const b = el('button', { type: 'button', className: 'tower', onclick: pick(v) },
       [el('small', { textContent: towerWord }), el('span', { textContent: v.slice(6) })]);
-    b.setAttribute('aria-pressed', String(state.tower === v));
+    b.setAttribute('aria-pressed', String(marked(v)));
     return b;
   }));
   $('areaList').replaceChildren(...CFG.towers.filter(v => !v.startsWith('Tower ')).map(v => {
     const b = el('button', { type: 'button', className: 'area', onclick: pick(v), textContent: listLabel(EN_AREA, 'AREA', v) });
-    b.setAttribute('aria-pressed', String(state.tower === v));
+    b.setAttribute('aria-pressed', String(marked(v)));
     return b;
   }));
 }
@@ -488,8 +515,8 @@ function updateBar() {
   $('steps').hidden = i < 0;
   document.querySelectorAll('#steps span').forEach((s, k) => { s.className = k === i ? 'on' : k < i ? 'done' : ''; });
   $('backBtn').hidden = i < 0;
-  $('bar').hidden = state.screen === 'what' || state.screen === 'done'; // step 1 moves on when a tile is tapped
-  $('nextBtn').textContent = state.screen === 'home' ? T('start') : state.screen === 'send' ? T('send') : T('next');
+  $('bar').hidden = ['what', 'where', 'done'].includes(state.screen); // tiles and towers move on by themselves
+  $('nextBtn').textContent = state.screen === 'home' ? T('start') : failed ? T('retry') : T('agree_send');
 }
 function go(screen) {
   state.screen = screen;
@@ -503,16 +530,34 @@ function back() {
   go(i <= 0 ? 'home' : STEPS[i - 1]);
 }
 function onCategory() {
-  // Urgent: help first, optional questions fold away. Lift: the Johnson Lifts line is one tap away.
+  // Urgent: help comes first. Lift: the Johnson Lifts line is one tap away.
   $('urgentBox').hidden = !isUrgent();
   $('liftUrgent').hidden = !isLift();
-  $('more').open = !isUrgent();
 }
-$('swipeHint').onclick = () => $('highlights').scrollIntoView({ behavior: 'smooth', block: 'start' });
+function openSheet(which) {
+  $('aboutBody').hidden = which !== 'about';
+  $('noticeBody').hidden = which !== 'notice';
+  $('sheet').showModal();
+  $('sheet').scrollTop = 0;
+}
+$('aboutBtn').onclick = () => openSheet('about');
+$('noticeBtn').onclick = () => openSheet('notice');
+$('sheetClose').onclick = () => $('sheet').close();
+$('sheet').addEventListener('click', e => { if (e.target === $('sheet')) $('sheet').close(); }); // tap outside closes
+$('againBtn').onclick = () => {
+  state.category = ''; state.tower = '';
+  ['description', 'spot', 'when', 'mygateRef'].forEach(id => { $(id).value = ''; }); // phone stays filled in
+  document.querySelectorAll('input[name=mygate]').forEach(r => { r.checked = false; });
+  $('mygateMore').hidden = true;
+  photos = []; $('thumbs').replaceChildren(); $('photos').value = '';
+  $('delVoice').onclick();
+  renderTiles(); renderPlaces(); onCategory();
+  go('what');
+};
 $('backBtn').onclick = back;
 $('lang').replaceChildren(...Object.entries(I18N).map(([code, t]) => new Option(t._name, code)));
 $('lang').value = L;
-$('lang').onchange = e => { L = e.target.value; store.set(L); render(); };
+$('lang').onchange = e => { L = e.target.value; local.set('lang', L); render(); };
 document.querySelectorAll('[data-wa]').forEach(a => {
   if (/^https:\/\/chat\.whatsapp\.com\//.test(CFG.safetyGroup)) a.href = CFG.safetyGroup; else a.hidden = true;
 });
@@ -604,12 +649,20 @@ $('delVoice').onclick = () => {
 };
 
 /* ---------- next / send ---------- */
+let failed = false;
+// Same rule as normPhone_ in Code.gs: Indian mobile, +91 / 91 / 0 in front allowed.
+const normPhone = v => { const d = String(v || '').replace(/[\s()-]/g, '').replace(/^(\+?91|0)(?=\d{10}$)/, ''); return /^[6-9]\d{9}$/.test(d) ? d : ''; };
+function keepDraft() {
+  draft.save({ category: state.category, tower: state.tower, description: $('description').value, spot: $('spot').value });
+}
+['description', 'spot'].forEach(id => $(id).addEventListener('input', keepDraft));
+document.addEventListener('input', () => { $('err').textContent = ''; }); // a fix clears the old message
 function collect() {
   const mg = document.querySelector('input[name=mygate]:checked');
   return {
     category: state.category, tower: state.tower, spot: $('spot').value, when: $('when').value,
     description: $('description').value, contact: $('contact').value, website: $('website').value,
-    consent: $('consent').checked, photos, voice, voiceType, lang: L,
+    consent: true, photos, voice, voiceType, lang: L, // pressing 'Agree and send' under the notice line is the consent
     mygate: mg ? mg.value : '', mygateRef: $('mygateRef').value, mygateOutcome: $('mygateOutcome').value,
   };
 }
@@ -621,19 +674,27 @@ function groupMessage(ticket, f) {
 }
 function submit() {
   const form = collect();
-  if (form.mygate === 'Yes' && !form.mygateOutcome) return void ($('err').textContent = T('e_mygate'));
-  if (!form.consent) return void ($('err').textContent = T('e_consent'));
+  if (form.mygate === 'Yes' && !form.mygateOutcome) { $('more').open = true; return void ($('err').textContent = T('e_mygate')); }
+  if (!normPhone(form.contact)) { $('contact').focus(); return void ($('err').textContent = T('e_phone')); }
+  local.set('phone', form.contact.trim()); // filled in next time on this phone
+  const needsDetail = form.category === 'Other safety risk' && !voice && !photos.length && form.description.trim().length < 3;
+  if (needsDetail) return void ($('err').textContent = T('e_desc'));
+  buzz();
   $('nextBtn').disabled = true;
   $('nextBtn').textContent = T('sending');
   google.script.run
     .withSuccessHandler(res => {
+      failed = false;
+      draft.clear();
+      $('nextBtn').disabled = false; // ready for 'Report another'
       $('ticket').textContent = res.ticket;
       $('waShare').href = 'https://wa.me/?text=' + encodeURIComponent(groupMessage(res.ticket, form));
       go('done');
     })
     .withFailureHandler(x => {
+      failed = true; // everything typed stays on screen; the button turns into Try again
       $('nextBtn').disabled = false;
-      $('nextBtn').textContent = T('send');
+      $('nextBtn').textContent = T('retry');
       const key = x && x.message && x.message.replace(/^Error:\s*/, '');
       $('err').textContent = key && key in I18N.en ? T(key) : T('e_generic');
     })
@@ -641,19 +702,24 @@ function submit() {
 }
 $('nextBtn').onclick = () => {
   if (state.screen === 'home') return go('what');
-  if (state.screen === 'where') {
-    if (!state.tower) return void ($('err').textContent = T('e_place'));
-    return go('details');
+  if (state.screen === 'send') {
+    if (recorder) return stopRecording(); // finish the voice note first
+    submit();
   }
-  if (state.screen === 'details') {
-    if (recorder) return stopRecording(); // finish the note first
-    if (!voice && !photos.length && $('description').value.trim().length < 15) return void ($('err').textContent = T('e_desc'));
-    return go('send');
-  }
-  if (state.screen === 'send') submit();
 };
 
+// Restore a text draft after an accidental reload, then start where it left off.
+(() => {
+  const d = draft.load();
+  if (!d || !CFG.categories.includes(d.category)) return;
+  state.category = d.category;
+  state.tower = CFG.towers.includes(d.tower) ? d.tower : '';
+  $('description').value = d.description || '';
+  $('spot').value = d.spot || '';
+})();
+$('contact').value = local.get('phone') || '';
 render();
+if (state.category) go(state.tower ? 'send' : 'where');
 </script>
 </body>
 </html>

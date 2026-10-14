@@ -1,6 +1,6 @@
 // Builds docs/index.html (GitHub Pages) from the Apps Script sources: same page, same translations,
 // same config. Reports go to the Apps Script /exec URL in backend-url.txt. If that file is empty,
-// the site runs in demo mode: a banner says nothing is saved, and the ticket reads DEMO.
+// the site runs in demo mode: a banner says nothing is saved. The ticket reads DEMO.
 // Usage: node tools/build_site.js
 const fs = require('fs');
 
