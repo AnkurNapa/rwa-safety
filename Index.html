@@ -191,6 +191,25 @@
   .ticket { font: 600 30px var(--mono); color: var(--copper-hi); letter-spacing: -.01em; margin: 4px 0 8px; }
   .done .csub { margin-bottom: 18px; font-size: 13px; color: var(--ink-dim); }
 
+  .disc { display: flex; gap: 8px; align-items: flex-start; font-size: 11.5px; color: var(--ink-dim); margin-top: 14px; line-height: 1.45; }
+  .disc svg { flex: none; margin-top: 2px; color: var(--ink-faint); }
+  .emhead { display: flex; align-items: center; gap: 10px; margin: 2px 0 10px; }
+  .contacts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .ct { display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: var(--r); background: var(--surface);
+    border: 1px solid var(--line); text-decoration: none; color: var(--ink); transition: border-color .2s, transform .15s var(--ease); }
+  .ct:hover { border-color: var(--rust); }
+  .ct:active { transform: scale(.97); }
+  .ct .ic { width: 36px; height: 36px; }
+  .ct small { display: block; font-size: 11.5px; color: var(--ink-dim); line-height: 1.25; }
+  .ct b { display: block; font: 600 18px var(--mono); color: var(--rust); }
+  .ct.hero { grid-column: span 2; background: var(--rust); border-color: var(--rust); color: #fff; padding: 16px; }
+  .ct.hero .ic { background: rgba(255,255,255,.18); color: #fff; }
+  .ct.hero small { color: rgba(255,255,255,.9); font-size: 13px; }
+  .ct.hero b { color: #fff; font-size: 26px; }
+  .swipe { display: flex; flex-direction: column; align-items: center; gap: 2px; width: 100%; padding: 6px 0 14px;
+    font-size: 12px; color: var(--ink-faint); }
+  .swipe svg { animation: nudge 1.6s var(--ease) infinite; }
+  @keyframes nudge { 50% { transform: translateY(-4px); } }
   .hp { position: absolute; left: -9999px; }
   [hidden] { display: none !important; }
   :focus-visible { outline: 2px solid var(--copper); outline-offset: 2px; }
@@ -203,7 +222,7 @@
     <button class="iconbtn" id="backBtn" type="button" hidden>
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
     </button>
-    <div class="brand"><h1>RWA <em>Safety</em></h1><div class="sub" id="org"></div></div>
+    <div class="brand"><h1>Resident <em>Safety</em></h1><div class="sub" id="org"></div></div>
     <label class="uchip">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg>
       <select id="lang" aria-label="Language"></select>
@@ -212,29 +231,21 @@
   <nav class="tabs" id="steps" hidden><span>01</span><span>02</span><span>03</span><span>04</span></nav>
 
   <main>
-    <!-- HOME -->
+    <!-- HOME: emergency contacts first, highlights below -->
     <section class="screen" data-screen="home">
-      <div class="attn">
-        <span class="alabel">SOS</span>
-        <a href="tel:112"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>112</a>
-        <a href="tel:101"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 2c1 3 4 5 4 9a4 4 0 0 1-8 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 0-8z"/></svg>101</a>
-        <a href="tel:108"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M12 8v8M8 12h8"/></svg>108</a>
-        <span class="emsg" data-i="emerg"></span>
-      </div>
-
-      <div class="card hero">
-        <h2 data-i="title"></h2>
-        <p class="csub" data-i="safe"></p>
-      </div>
-
+      <div class="emhead"><span class="alabel">SOS</span><span class="ctitle" data-i="em_title"></span></div>
+      <div class="contacts" id="contacts"></div>
       <div class="card" data-lift></div>
-
-      <button class="primary" type="button" id="startBtn"><span data-i="start"></span>
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
-      <a class="ghost-wa" target="_blank" rel="noopener" data-wa><span data-i="wa_btn"></span></a>
-      <p class="note" data-i="wa_note"></p>
-
-      <div class="card notice-amber" style="margin-top:14px"><b data-i="childT"></b> <span data-i="childB"></span></div>
+      <button class="swipe" type="button" id="swipeHint">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg>
+        <span data-i="swipe"></span></button>
+      <div id="highlights">
+        <div class="card hero"><h2 data-i="title"></h2><p class="csub" data-i="safe"></p></div>
+        <a class="ghost-wa" target="_blank" rel="noopener" data-wa><span data-i="wa_btn"></span></a>
+        <p class="note" data-i="wa_note"></p>
+        <div class="card notice-amber" style="margin-top:14px"><b data-i="childT"></b> <span data-i="childB"></span></div>
+        <p class="disc"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg><span data-i="disc"></span></p>
+      </div>
     </section>
 
     <!-- STEP 1: WHAT -->
@@ -317,6 +328,7 @@
         <label class="consent"><input type="checkbox" id="consent"><span data-i="consent"></span></label>
       </div>
       <p class="csub" data-i="safe"></p>
+      <p class="disc"><span data-i="disc"></span></p>
       <input type="text" id="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
     </section>
 
@@ -400,6 +412,23 @@ function renderLift(box) {
   const more = el('div', { className: 'alts' }, alts.map(n => el('a', { href: 'tel:' + n, textContent: '/' + n.slice(-2) })));
   box.replaceChildren(head, call, more);
 }
+// National helplines first, then the lift company card (CFG.liftHelpline) below them.
+const CONTACTS = [
+  ['112', 'em_all', ICONS['Security or suspicious person'], true],
+  ['101', 'em_fire', ICONS['Fire, smoke or burning smell']],
+  ['108', 'em_amb', '<rect x="3" y="3" width="18" height="18" rx="4"/><path d="M12 8v8M8 12h8"/>'],
+  ['1906', 'em_gas', ICONS['Gas leak smell']],
+  ['1912', 'em_power', ICONS['Electrical danger (open wires, sparks, shocks)']],
+  ['1098', 'em_child', ICONS['Danger to children (open shaft, unsafe play area)']],
+];
+function renderContacts() {
+  $('contacts').replaceChildren(...CONTACTS.map(([num, key, icon, hero]) => {
+    const a = el('a', { className: 'ct' + (hero ? ' hero' : ''), href: 'tel:' + num });
+    a.innerHTML = `<span class="ic r">${svg(icon)}</span>`;
+    a.append(el('span', {}, [el('small', { textContent: T(key) }), el('b', { textContent: num })]));
+    return a;
+  }));
+}
 function renderTiles() {
   $('catGrid').replaceChildren(...CFG.categories.map(v => {
     const b = el('button', { type: 'button', className: 'tile' + (CFG.urgent.includes(v) ? ' urg' : '') });
@@ -450,7 +479,7 @@ function render() {
   $('mygateOutcome').replaceChildren(new Option(T('pick_outcome'), ''),
     ...CFG.mygateOutcomes.map(v => new Option(listLabel(EN_OUT, 'OUT', v), v)));
   $('mygateOutcome').value = keep;
-  renderTiles(); renderPlaces(); renderNotice(); onCategory(); updateBar();
+  renderContacts(); renderTiles(); renderPlaces(); renderNotice(); onCategory(); updateBar();
 }
 
 /* ---------- navigation ---------- */
@@ -459,8 +488,8 @@ function updateBar() {
   $('steps').hidden = i < 0;
   document.querySelectorAll('#steps span').forEach((s, k) => { s.className = k === i ? 'on' : k < i ? 'done' : ''; });
   $('backBtn').hidden = i < 0;
-  $('bar').hidden = i < 1; // step 1 moves on when a tile is tapped
-  $('nextBtn').textContent = state.screen === 'send' ? T('send') : T('next');
+  $('bar').hidden = state.screen === 'what' || state.screen === 'done'; // step 1 moves on when a tile is tapped
+  $('nextBtn').textContent = state.screen === 'home' ? T('start') : state.screen === 'send' ? T('send') : T('next');
 }
 function go(screen) {
   state.screen = screen;
@@ -479,7 +508,7 @@ function onCategory() {
   $('liftUrgent').hidden = !isLift();
   $('more').open = !isUrgent();
 }
-$('startBtn').onclick = () => go('what');
+$('swipeHint').onclick = () => $('highlights').scrollIntoView({ behavior: 'smooth', block: 'start' });
 $('backBtn').onclick = back;
 $('lang').replaceChildren(...Object.entries(I18N).map(([code, t]) => new Option(t._name, code)));
 $('lang').value = L;
@@ -588,7 +617,7 @@ function collect() {
 function groupMessage(ticket, f) {
   return ['SAFETY ALERT ' + ticket, f.category, [f.tower, f.spot.trim()].filter(Boolean).join(', '),
     f.description.trim() || (f.voice ? '(voice note with the ticket)' : '(photo with the ticket)'),
-    'Sent from the ' + CFG.society + ' safety form'].join('\n');
+    'Sent from the ' + CFG.society + ' app (not an official society app)'].join('\n');
 }
 function submit() {
   const form = collect();
@@ -611,6 +640,7 @@ function submit() {
     .submit(form);
 }
 $('nextBtn').onclick = () => {
+  if (state.screen === 'home') return go('what');
   if (state.screen === 'where') {
     if (!state.tower) return void ($('err').textContent = T('e_place'));
     return go('details');

@@ -16,11 +16,11 @@ const head = `<meta name="viewport" content="width=device-width, initial-scale=1
 <meta name="theme-color" content="#f6f7f9">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="RWA Safety">
+<meta name="apple-mobile-web-app-title" content="Resident Safety">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<title>RWA Safety</title>`;
+<title>Resident Safety</title>`;
 
 // google.script.run look-alike, so Index.html runs unchanged outside Apps Script.
 const shim = `<script>
@@ -54,7 +54,7 @@ let html = read('Index.html')
 if (html.includes('<?')) throw new Error('unreplaced Apps Script scriptlet in Index.html');
 
 const manifest = {
-  name: 'RWA Safety', short_name: 'Safety', description: 'Report a safety problem in the building',
+  name: 'Resident Safety', short_name: 'Safety', description: 'Report a safety problem in the building',
   start_url: '.', scope: '.', display: 'standalone', background_color: '#f6f7f9', theme_color: '#f6f7f9',
   icons: [{ src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
     { src: 'icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' }],

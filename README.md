@@ -1,4 +1,6 @@
-# Resident complaint portal
+# Resident Safety
+
+A residents' initiative to get safety problems fixed at Godrej Park Retreat. It is not an official app of the society, its committee or Godrej Properties. The app says so on the home screen, in the privacy notice and on the poster.
 
 Residents report safety problems (lifts, fire, gas, wiring, structure, security, danger to children) from their phone with no login. It works in 11 languages: English, Hindi, Kannada, Bangla, Odia, Punjabi, Tamil, Telugu, Malayalam, Marathi and Gujarati. Reports can carry photos or a voice note of up to 2 minutes. Reports land in Google Sheets under napaankur@gmail.com. Monitors see counts and tickets but never who sent them.
 
@@ -23,7 +25,7 @@ Google shares whole files, not single tabs. That is why contact details sit in a
 1. Sign in to Google as napaankur@gmail.com and open https://script.google.com. Click **New project** and name it `RWA complaint portal`.
 2. Replace the contents of `Code.gs` with this folder's `Code.gs`.
 3. Click **+** next to Files, choose **HTML** and name it `Index`. Paste this folder's `Index.html`. Add a second HTML file named `I18n` and paste `I18n.html` (the translations).
-4. Check the `CONFIG` block at the top of `Code.gs`. Put in the association's exact registered name and the towers. If you change a category, change `EN_CAT` in `I18n.html` the same way and add its translations.
+4. Check the `CONFIG` block at the top of `Code.gs`. Check the initiative name and the towers. If you change a category, change `EN_CAT` in `I18n.html` the same way and add its translations.
 5. Choose `selfTest` in the function menu and click **Run**. Approve the permissions prompt. The log should say `selfTest passed`.
 6. Choose `setup` and click **Run**. Approve the extra permission to send email (used only for urgent alerts). The log prints the links to both sheets and the photos folder.
 7. Click **Deploy > New deployment > Web app**. Set **Execute as: Me** and **Who has access: Anyone**. Copy the web app URL.
@@ -45,20 +47,20 @@ After any later edit to the code, use **Deploy > Manage deployments > Edit > New
 
 ## Before launch
 
-- [ ] Committee resolution recording that the association runs the portal and that napaankur@gmail.com is the data contact
+- [ ] You understand that, as coordinator, you are personally the Data Fiduciary under the DPDP Act. The society is not. Keep the retention, erasure and breach steps above.
 - [ ] Each monitor has signed the note below
 - [ ] Test tickets checked on two phones, one Android and one iPhone
 
 ## Note for monitors (print, sign and keep a copy)
 
-> I will handle reports from the resident complaint portal in confidence. I will use them only to follow up problems for the association. I will not try to find out who sent a report. I will not download, screenshot, forward or post reports or photos in any WhatsApp group or elsewhere. I will blur faces and flat numbers before any photo is shared with the committee or a vendor. I will tell the data contact straight away if I think data has been exposed. When I stop being a monitor I will delete anything I hold and give up my access.
+> I will handle reports from the resident complaint portal in confidence. I will use them only to follow up safety problems for this residents' initiative. I will not try to find out who sent a report. I will not download, screenshot, forward or post reports or photos in any WhatsApp group or elsewhere. I will blur faces and flat numbers before any photo is shared with the committee or a vendor. I will tell the data contact straight away if I think data has been exposed. When I stop being a monitor I will delete anything I hold and give up my access.
 >
 > Name: ______________ Flat: ______ Signature: ______________ Date: __________
 
 ## Limits
 
 - The spam limit is one shared cap of 60 reports an hour, because Apps Script cannot see who is sending. Raise it if a real surge ever gets blocked.
-- Your email address shows in the privacy notice. A separate address such as a dedicated Gmail for the association would keep your personal inbox out of it. Change `CONTACT_EMAIL` and redeploy.
+- Your email address shows in the privacy notice. A separate address such as a dedicated Gmail for the initiative would keep your personal inbox out of it. Change `CONTACT_EMAIL` and redeploy.
 
 ## The phone app on GitHub Pages
 

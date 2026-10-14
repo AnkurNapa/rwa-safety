@@ -1,11 +1,11 @@
 /**
- * Resident complaint portal for the Residents' Welfare Association.
+ * Resident safety reporting app: a volunteer residents' initiative, not an official app of the society.
  * Standalone Apps Script web app. Run setup() once, then deploy (see README.md).
  */
 const CONFIG = {
-  SOCIETY: "Godrej Park Retreat Residents' Welfare Association",
+  SOCIETY: "Godrej Park Retreat residents' safety initiative", // not the society or its committee
   CONTACT_EMAIL: 'napaankur@gmail.com',
-  NOTICE_VERSION: 'v1, 14 October 2026',
+  NOTICE_VERSION: 'v2, 14 October 2026',
   TOWERS: ['Tower A', 'Tower B', 'Tower C', 'Tower D', 'Tower E', 'Tower F', 'Tower G', 'Tower H',
     'Parking', 'Clubhouse', 'Gate and driveway', 'Garden or play area', 'Other common area'],
   // Safety only. Keep in step with EN_CAT in I18n.html, which holds the translations.

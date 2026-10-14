@@ -14,7 +14,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 from reportlab.pdfgen import canvas
 
-SOCIETY = "Godrej Park Retreat Residents' Welfare Association"
+SOCIETY = "Godrej Park Retreat residents' safety initiative"
 # Copperline palette
 GREEN, CREAM, INK, MUTED = HexColor('#4e79a7'), HexColor('#f6f7f9'), HexColor('#2b3137'), HexColor('#667085')
 RUST = HexColor('#d65a57')
@@ -94,7 +94,7 @@ def build(url, out):
     centred(c, 'Children working or in danger? Call 1098 (Childline) or 112.', by + 9.5 * mm, 'Helvetica-Bold', 12)
     centred(c, 'You can stay anonymous. Please do not photograph children.', by + 4 * mm, 'Helvetica', 10, MUTED)
 
-    centred(c, 'Run by the association under the DPDP Act 2023. Read the privacy notice on the form.',
+    centred(c, "A residents' initiative. Not an official app of the society, its committee or Godrej Properties.",
             12 * mm, 'Helvetica', 8.5, MUTED)
     centred(c, 'Printed ' + date.today().strftime('%d %B %Y'), 7.5 * mm, 'Helvetica', 7.5, MUTED)
 
