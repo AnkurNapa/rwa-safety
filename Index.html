@@ -401,7 +401,7 @@ const el = (tag, props = {}, kids = []) => { const n = Object.assign(document.cr
 
 // The last tower is remembered and highlighted, but the resident still taps it: nothing is sent silently.
 const state = { screen: 'home', category: '', tower: '' };
-let photos = [], voice = null, voiceType = '', voiceBlob = null, recorder = null, recTimer = null;
+let photos = [], voice = null, voiceType = '', recorder = null, recTimer = null;
 
 // Per-phone conveniences only. Storage can be blocked (private mode), so every call is guarded.
 const local = {
@@ -560,7 +560,7 @@ function resetForm() {
   ['description', 'spot', 'when', 'mygateRef'].forEach(id => { $(id).value = ''; }); // phone stays filled in
   document.querySelectorAll('input[name=mygate]').forEach(r => { r.checked = false; });
   $('mygateMore').hidden = true;
-  photos = []; shareFiles = []; $('thumbs').replaceChildren(); $('photos').value = '';
+  photos = []; $('thumbs').replaceChildren(); $('photos').value = '';
   $('delVoice').onclick();
   renderTiles(); renderPlaces(); onCategory();
 }
@@ -638,7 +638,6 @@ $('recBtn').addEventListener('click', async () => {
     stream.getTracks().forEach(t => t.stop());
     clearInterval(recTimer);
     const blob = new Blob(chunks, { type: recorder.mimeType });
-    voiceBlob = blob;
     voiceType = recorder.mimeType.split(';')[0];
     voice = await blobToBase64(blob);
     recorder = null;
@@ -659,30 +658,13 @@ $('recBtn').addEventListener('click', async () => {
   }, 250);
 });
 $('delVoice').onclick = () => {
-  voice = null; voiceType = ''; voiceBlob = null;
+  voice = null; voiceType = '';
   $('voiceBar').hidden = true; $('player').removeAttribute('src');
 };
 
 /* ---------- next / send ---------- */
 let failed = false;
 let lastMessage = '';
-let shareFiles = []; // photos and the voice note, ready for the phone's share sheet
-const b64ToFile = (b64, name, type) => {
-  const bin = atob(b64);
-  const bytes = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-  return new File([bytes], name, { type });
-};
-// Photos and voice note as files for the phone's share sheet, named after the ticket once it is known.
-function mediaFiles(prefix) {
-  const ext = { 'audio/webm': 'webm', 'audio/mp4': 'm4a', 'audio/ogg': 'ogg' }[voiceType] || 'webm';
-  return photos.map((b64, i) => b64ToFile(b64, prefix + '-' + (i + 1) + '.jpg', 'image/jpeg'))
-    .concat(voiceBlob ? [new File([voiceBlob], prefix + '-voice.' + ext, { type: voiceType || 'audio/webm' })] : []);
-}
-const canShare = () => !!navigator.share;
-// Share sheet payload: the text always, the files when the phone can hand them over.
-const sharePayload = (files, text) => (canShareFiles(files) ? { files, text, title: 'Safety alert' } : { text, title: 'Safety alert' });
-const canShareFiles = files => files.length > 0 && !!navigator.share && !!navigator.canShare && navigator.canShare({ files });
 const hasGroup = () => /^https:\/\/chat\.whatsapp\.com\//.test(CFG.safetyGroup);
 // Copy inside the tap itself. execCommand works in the Apps Script iframe where the async clipboard API can be blocked.
 function copyText(text) {
@@ -710,23 +692,14 @@ function alertMessage() {
   return ['\u{1F6A8} URGENT: ' + state.category, where, ask, $('description').value.trim(),
     'Sent from the ' + CFG.society + ' app'].filter(Boolean).join('\n');
 }
-$('urgentWa').addEventListener('click', e => {
+$('urgentWa').addEventListener('click', () => {
   const text = alertMessage();
-  copyText(text);
-  if (canShare()) {
-    e.preventDefault(); // share sheet puts the alert straight into WhatsApp's message box
-    navigator.share({ text, title: 'Urgent safety alert' }).catch(() => { /* cancelled */ });
-  } // no share sheet: the link opens the group with the alert copied, ready to paste
+  copyText(text); // the link then opens the group; long-press the message box and paste
 });
-$('waShare').addEventListener('click', e => {
+$('waShare').addEventListener('click', () => {
   if (!lastMessage) return;
-  copyText(lastMessage); // also on the clipboard in case WhatsApp drops the text
-  if (canShare()) {
-    e.preventDefault(); // share sheet carries the details and photos into WhatsApp
-    navigator.share(sharePayload(shareFiles, lastMessage)).catch(() => { /* cancelled: button still works */ });
-  } else {
-    $('copiedNote').hidden = false; // backup: the link opens the group, the resident pastes
-  }
+  copyText(lastMessage); // with the ticket number this time; the link opens the group
+  $('copiedNote').hidden = false;
 });
 // Same rule as normPhone_ in Code.gs: Indian mobile, +91 / 91 / 0 in front allowed.
 const normPhone = v => { const d = String(v || '').replace(/[\s()-]/g, '').replace(/^(\+?91|0)(?=\d{10}$)/, ''); return /^[6-9]\d{9}$/.test(d) ? d : ''; };
@@ -758,13 +731,8 @@ function submit() {
   const needsDetail = form.category === 'Other safety risk' && !voice && !photos.length && form.description.trim().length < 3;
   if (needsDetail) return void ($('err').textContent = T('e_desc'));
   buzz();
-  // Strict rule: every report lands in the safety group. Hand it over on this tap, while it counts as a user action.
-  const preText = groupMessage('', form);
-  copyText(preText);
-  if (canShare()) {
-    // Open the share sheet now with the details (and photos) filled in. Saving to the sheet carries on underneath.
-    navigator.share(sharePayload(mediaFiles('report'), preText)).catch(() => { /* cancelled: the ticket screen button still sends it */ });
-  }
+  // Strict rule: every report lands in the safety group. Copy it now; the group opens at the end of this same tap.
+  copyText(groupMessage('', form));
   $('nextBtn').disabled = true;
   $('nextBtn').textContent = T('sending');
   google.script.run
@@ -774,17 +742,9 @@ function submit() {
       $('nextBtn').disabled = false; // ready for 'Report another'
       $('ticket').textContent = res.ticket;
       lastMessage = groupMessage(res.ticket, form);
-      shareFiles = mediaFiles(res.ticket);
-      const withMedia = canShareFiles(shareFiles);
-      $('waPickNote').dataset.i = !canShare() ? 'wa_pick' : withMedia ? 'wa_pick_media' : 'wa_pick_share';
-      $('waPickNote').textContent = T($('waPickNote').dataset.i);
-      // WhatsApp has no link that drops text into a given group. So: copy the report, open the group, the resident pastes.
+      // WhatsApp has no link that drops text into a given group: the group opened on the tap, the resident pastes.
       $('waShare').href = hasGroup() ? CFG.safetyGroup : 'https://wa.me/?text=' + encodeURIComponent(lastMessage);
-      $('copiedNote').hidden = canShare() || !hasGroup();
-      // Open the group straight away. Only as the top page: inside the Apps Script frame WhatsApp refuses to load.
-      // No photos: open the group straight away. With photos the resident taps the button, so the files go too.
-      // Backup for phones with no share sheet: open the group and the copied text is pasted.
-      if (!canShare() && hasGroup() && window.top === window) setTimeout(() => { window.location.href = CFG.safetyGroup; }, 1500);
+      $('copiedNote').hidden = !hasGroup();
       go('done');
     })
     .withFailureHandler(x => {
@@ -795,6 +755,8 @@ function submit() {
       $('err').textContent = key && key in I18N.en ? T(key) : T('e_generic');
     })
     .submit(form);
+  // Saving is already on its way. Opening the group inside the tap lets the phone hand over to the WhatsApp app.
+  if (hasGroup()) window.open(CFG.safetyGroup, '_blank', 'noopener');
 }
 $('nextBtn').onclick = () => {
   if (state.screen === 'home') return go('what');
