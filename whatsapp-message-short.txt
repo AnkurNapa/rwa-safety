@@ -5,7 +5,7 @@ I've made a small safety app for our building. Report a stuck lift, smoke, gas s
 https://ankurnapa.github.io/rwa-safety/
 
 Reports can be shared in our safety group:
-https://chat.whatsapp.com/BgTJMNNCUoG1Ey9GQViZXB
+https://chat.whatsapp.com/JjNRjLji6vA2x1Q1r95Zd2
 
 Everything stays among us residents. Reports go only to this group and a private log I keep. Nothing is shared outside.
 
