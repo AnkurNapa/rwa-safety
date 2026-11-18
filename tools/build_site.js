@@ -44,7 +44,7 @@ window.google = { script: { run: (() => {
 </script>`;
 
 const demoBanner = backend ? '' : `<div style="background:#d65a57;color:#fff;text-align:center;font:600 13px Archivo,sans-serif;padding:8px 12px">
-DEMO MODE. Reports are not saved yet. In an emergency call 112.</div>`;
+Reports are not saved yet. In an emergency call 112.</div>`;
 
 let html = read('Index.html')
   .replace('<base target="_top">', head + '\n' + shim)
